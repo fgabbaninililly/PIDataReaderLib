@@ -62,8 +62,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AFElementBuilder.cs" />
+    <Compile Include="AFElementReader.cs" />
     <Compile Include="BatchSerializer.cs" />
-    <Compile Include="Configuration.cs" />
+    <Compile Include="AFData.cs" />
+    <Compile Include="PIReaderConfig.cs" />
     <Compile Include="EntityBuilder.cs" />
     <Compile Include="EntityNavigator.cs" />
     <Compile Include="FileWriter.cs" />

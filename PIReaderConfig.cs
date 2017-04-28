@@ -18,6 +18,7 @@ namespace PIDataReaderLib {
 		public static readonly int CFGERR_NULL_CONNECTION_OBJECT = 10;
 		public static readonly int CFGERR_NULL_PICONNECTION_OBJECT = 20;
 		public static readonly int CFGERR_NULL_MQTTCONNECTION_OBJECT = 30;
+		public static readonly int CFGERR_NULL_AFCONNECTION_OBJECT = 31;
 		public static readonly int CFGERR_NULL_READ_OBJECT = 40;
 		public static readonly int CFGERR_NULL_READEXTENT_OBJECT = 50;
 		public static readonly int CFGERR_NULL_READEXTENTTYPE_OBJECT = 51;
@@ -26,10 +27,15 @@ namespace PIDataReaderLib {
 		public static readonly int CFGERR_NULL_READEXTENTRELATIVE_OBJECT = 80;
 		public static readonly int CFGERR_NULL_PISERVER_NAME = 90;
 		public static readonly int CFGERR_NULL_PISDK_NAME = 100;
+		public static readonly int CFGERR_NULL_AFSERVER_NAME = 110;
+		public static readonly int CFGERR_INVALID_READMODE = 120;
+		public static readonly int CFGERR_NULL_AFELEMENTS_OBJECT = 130;
 
 		public ConfigurationErrors() {
+			this.Add(CFGERR_NONE, "No error detected in configuration.");
 			this.Add(CFGERR_NULL_CONNECTION_OBJECT, "Null or invalid reference to Connection object. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_PICONNECTION_OBJECT, "Null or invalid reference to PI connection object. Please check your xml configuration file.");
+			this.Add(CFGERR_NULL_AFCONNECTION_OBJECT, "Null or invalid reference to AF connection object. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_MQTTCONNECTION_OBJECT, "Null or invalid reference to MQTT connection object. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_READ_OBJECT, "Null or invalid reference to Read section. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_READEXTENT_OBJECT, "Null or invalid reference to ReadExtent section. Please check your xml configuration file.");
@@ -37,13 +43,16 @@ namespace PIDataReaderLib {
 			this.Add(CFGERR_NULL_READEXTENTFREQ_OBJECT, "Null or invalid reference to read extent frequency section. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_READEXTENTFIXED_OBJECT, "Null or invalid reference to read extent fixed section. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_READEXTENTRELATIVE_OBJECT, "Null or invalid reference to read extent relative section. Please check your xml configuration file.");
-			this.Add(CFGERR_NULL_READEXTENTRELATIVE_OBJECT, "Null or invalid reference to PI server name. Please check your xml configuration file.");
-			this.Add(CFGERR_NULL_READEXTENTRELATIVE_OBJECT, "Null or invalid reference to PI sdk type. Please check your xml configuration file.");
+			this.Add(CFGERR_NULL_PISERVER_NAME, "Null or invalid reference to PI server name. Please check your xml configuration file.");
+			this.Add(CFGERR_NULL_PISDK_NAME, "Null or invalid reference to PI sdk type. Please check your xml configuration file.");
+			this.Add(CFGERR_NULL_AFSERVER_NAME, "Null or invalid reference to AF server or database. Please check your xml configuration file.");
+			this.Add(CFGERR_INVALID_READMODE, "Null or invalid read mode. Please check your xml configuration file.");
+			this.Add(CFGERR_NULL_AFELEMENTS_OBJECT, "Null reference to AF element list. Please check your xml configuration file.");
 		}
 	}
 
 	[XmlRootAttribute("config", Namespace = "", IsNullable = false)]
-	public class Configuration {
+	public class PIReaderConfig {
 		[XmlAttribute("test")]
 		public string test;
 
@@ -90,25 +99,67 @@ namespace PIDataReaderLib {
 			return null;
 		}
 
-		public static Configuration parseFromFile(string configFile) {
-			XmlSerializer serializer = new XmlSerializer(typeof(Configuration));
+		public static PIReaderConfig parseFromFile(string configFile) {
+			XmlSerializer serializer = new XmlSerializer(typeof(PIReaderConfig));
 
 			FileStream fs = new FileStream(configFile, FileMode.Open);
 			// Declare an object variable of the type to be deserialized.
-			Configuration configuration = null;
+			PIReaderConfig configuration = null;
 			// Use the Deserialize method to restore the object's state with
 			// data from the XML document. 
-			configuration = (Configuration)serializer.Deserialize(fs);
+			configuration = (PIReaderConfig)serializer.Deserialize(fs);
 			fs.Close();
 			return configuration;
 		}
 
-		public static int checkValid(Configuration config) {
-			
+		private static int checkCommonValid(PIReaderConfig config) {
 			if (null == config.connections) {
 				return ConfigurationErrors.CFGERR_NULL_CONNECTION_OBJECT;
 			}
+			return ConfigurationErrors.CFGERR_NONE;
+		}
+
+		public static int checkAFValid(PIReaderConfig config) {
+			int err = checkCommonValid(config);
+			if (ConfigurationErrors.CFGERR_NONE != err) {
+				return err;
+			}
+
+			Connection connection = config.getConnectionByName("af");
+			if (null == connection) {
+				return ConfigurationErrors.CFGERR_NULL_AFCONNECTION_OBJECT;
+			}
+
+			//CONNECTION SECTION
+			if (null == connection.getParameterValueByName(Parameter.PARAMNAME_AFSERVERNAME) || 0 == connection.getParameterValueByName(Parameter.PARAMNAME_AFDATABASE).Length) {
+				return ConfigurationErrors.CFGERR_NULL_AFSERVER_NAME;
+			}
+			if (null == connection.getParameterValueByName(Parameter.PARAMNAME_AFDATABASE) || 0 == connection.getParameterValueByName(Parameter.PARAMNAME_AFDATABASE).Length) {
+				return ConfigurationErrors.CFGERR_NULL_AFSERVER_NAME;
+			}
+
+			//READ SECTION
+			if (null == config.read) {
+				return ConfigurationErrors.CFGERR_NULL_READ_OBJECT;
+			}
+
+			if (null == config.read.readMode || !Read.READMODE_AFELEMENT.Equals(config.read.readMode.ToLower())) {
+				return ConfigurationErrors.CFGERR_INVALID_READMODE;
+			}
+
+			if (null == config.read.afelements) {
+				return ConfigurationErrors.CFGERR_NULL_AFELEMENTS_OBJECT;
+			}
 			
+			return ConfigurationErrors.CFGERR_NONE;
+		}
+
+		public static int checkValid(PIReaderConfig config) {
+			int err = checkCommonValid(config);
+			if (ConfigurationErrors.CFGERR_NONE != err) {
+				return err;
+			}
+						
 			Connection connection = config.getConnectionByName("pi");
 			if (null == connection) {
 				return ConfigurationErrors.CFGERR_NULL_PICONNECTION_OBJECT;
@@ -160,7 +211,6 @@ namespace PIDataReaderLib {
 			return ConfigurationErrors.CFGERR_NONE;
 		}
 	}
-
 	public class DateFormats {
 		[XmlAttribute("pi")]
 		public string pi;
@@ -198,6 +248,9 @@ namespace PIDataReaderLib {
 		public const string PARAMNAME_MQTTBROKERPORT = "mqttbrokerport";
 		public const string PARAMNAME_MQTTCLIENTNAME = "mqttclientname";
 
+		public const string PARAMNAME_AFSERVERNAME = "afservername";
+		public const string PARAMNAME_AFDATABASE = "afdatabase";
+
 		public const string PARAMNAME_MQTTOUT_TOPIC = "topic";
 		public const string PARAMNAME_MQTTOUT_CLIENTID = "clientid";
 
@@ -225,6 +278,7 @@ namespace PIDataReaderLib {
 	public class Read {
 		public const string READMODE_TAG = "tag";
 		public const string READMODE_BATCH = "batch";
+		public const string READMODE_AFELEMENT = "afelement";
 
 		[XmlAttribute("mode")]
 		public string readMode;
@@ -234,9 +288,15 @@ namespace PIDataReaderLib {
 
 		[XmlArrayItem("equipment")]
 		public List<EquipmentCfg> equipments { get; set; }
-
+		
 		[XmlArrayItem("batch")]
 		public List<BatchCfg> batches { get; set; }
+
+		[XmlArrayItem("afelement")]
+		/*
+		 * DIAAFElement class implemented in AFData.cs. Same classe used for in/out.
+		 * */
+		public List<DIAAFElement> afelements { get; set; }
 
 		public bool readBatches() {
 			if (READMODE_BATCH.Equals(readMode.ToLower())) {

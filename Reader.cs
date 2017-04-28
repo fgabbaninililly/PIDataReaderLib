@@ -78,7 +78,7 @@ namespace PIDataReaderLib {
 			logger.Info("Executed dummy read to improve performance of next read");
 		}
 
-		public Dictionary<string, PIData> readTags(Configuration config, Dictionary<string, ReadInterval> readIntervalsByEquipment) {
+		public Dictionary<string, PIData> readTags(PIReaderConfig config, Dictionary<string, ReadInterval> readIntervalsByEquipment) {
 			logger.Info(">>Start reading data");
 			Dictionary<string, PIData> piDataMap = new Dictionary<string, PIData>();
 			Dictionary<string, double> readTimesMap = new Dictionary<string, double>();
@@ -106,7 +106,7 @@ namespace PIDataReaderLib {
 			return piDataMap;
 		}
 		
-		public Dictionary<string, PIData> readBatches(Configuration config, Dictionary<string, ReadInterval> readIntervalsByEquipment) {
+		public Dictionary<string, PIData> readBatches(PIReaderConfig config, Dictionary<string, ReadInterval> readIntervalsByEquipment) {
 
 			logger.Info(">>Start reading data");
 			PISDKReader sdkReader = (PISDKReader)piReader;
