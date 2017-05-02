@@ -427,6 +427,12 @@ namespace PIDataReaderLib {
 
 		[XmlAttribute("type")]
 		public string type;
+
+		[XmlAttribute("slice")]
+		public string slice;
+
+		[XmlAttribute("sliceunit")]
+		public string sliceunit;
 	}
 
 	public class ReadExtentFrequency {
