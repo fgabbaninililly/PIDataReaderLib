@@ -90,6 +90,7 @@ namespace PIDataReaderLib {
 			return null;
 		}
 
+		[System.Obsolete("Deprecated method. Remove from next version.")]
 		public OutputChannel getOutputChannelByName(string name) {
 			foreach (OutputChannel outChannel in outputchannels) {
 				if (outChannel.name.ToLower().Equals(name)) {
@@ -427,6 +428,39 @@ namespace PIDataReaderLib {
 
 		[XmlAttribute("type")]
 		public string type;
+
+		[XmlAttribute("slice")]
+		public string slice;
+
+		[XmlAttribute("sliceunit")]
+		public string sliceunit;
+
+		public long getSliceDuration() {
+			long sd = 0;
+			try { 
+				sd = Int64.Parse(slice);
+			} catch(Exception) {}
+			return sd;
+		}
+
+		public bool isSliced() {
+			return getSliceDuration() != 0;
+		}
+
+		public long getSliceDurationSec() {
+			double multiplier = 1.0;
+			if ("m".Equals(sliceunit.ToLower())) {
+				multiplier = 60.0;
+			}
+			if ("h".Equals(sliceunit.ToLower())) {
+				multiplier = 3600.0;
+			}
+			if ("d".Equals(sliceunit.ToLower())) {
+				multiplier = 86400.0;
+			}
+						
+			return (long)(multiplier * getSliceDuration());
+		}
 	}
 
 	public class ReadExtentFrequency {
@@ -438,6 +472,9 @@ namespace PIDataReaderLib {
 
 		[XmlAttribute("buffer")]
 		public string buffer;
+
+		[XmlAttribute("limit")]
+		public string limit;
 
 		public double getReadBackSecondsAsDouble() {
 			double buf = double.Parse(buffer);
@@ -453,6 +490,21 @@ namespace PIDataReaderLib {
 				multiplier = 3600;
 			}
 			return double.Parse(value) * multiplier;
+		}
+
+		public long getReadbackLimitSeconds() {
+			long multiplier = 1;
+			if (unit.ToLower().Equals(TimeUnit.UNIT_DAYS)) {
+				multiplier = 87400;
+			}
+			if (unit.ToLower().Equals(TimeUnit.UNIT_HOURS)) {
+				multiplier = 3600;
+			}
+			long readBackLimit = 0;
+			if (null != limit && limit.Length > 0) {
+				readBackLimit = long.Parse(limit) * multiplier;
+			}
+			return readBackLimit;
 		}
 	}
 

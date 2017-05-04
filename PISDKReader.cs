@@ -91,44 +91,7 @@ namespace PIDataReaderLib {
 			//readFinishedTimestamp = DateTime.Now;
 			return tagList;
 		}
-
-		/*
-		[Obsolete(@"public PIData Read(string, DateTime, DateTime) is deprecated, please use 
-			public PIData Read(string, string, DateTime, DateTime) instead.")]
-		public PIData Read(string tagListString, DateTime startTime, DateTime endTime) {
-			string[] tagListArray = tagListString.Split(',');
-			this.tagList = new HashSet<string>(tagListArray);
-
-			PIData piData = new PIData();
-			piData.tags = new List<Tag>();
-			lastReadRecordCount = 0;
-			PISDK.PIPoint piPoint = default(PISDK.PIPoint);
-			foreach (string tag in tagList) {
-				try {
-					piPoint = piServer.PIPoints[tag];
-					Tag outTag = new Tag();
-					outTag.name = piPoint.Name;
-					PIValues lValues = piPoint.Data.RecordedValues(startTime, endTime);
-					if (lValues.Count > 0) {
-						StringBuilder tagValues = new StringBuilder();
-						//PIValue collection index is 1-based!!!
-						for (int i = 1; i <= lValues.Count; i++) {
-							PIValue piValue = lValues[i];
-							tagValues.AppendFormat("{0}:{1},", piValue.TimeStamp.LocalDate.ToString(dateFormat), piValue.Value.ToString);
-							lastReadRecordCount = lastReadRecordCount + 1;
-						}
-						tagValues.Remove(tagValues.Length - 1, 1);
-						outTag.tagvalues = tagValues.ToString();
-						piData.tags.Add(outTag);
-					}
-				} catch (Exception ex) {
-					throw new Exception("Unable to read values for tag " + tag + ". Details: " + ex.Message);
-				}
-			}
-			return piData;
-		}
-		*/
-
+		
 		public PIModule getModuleFromPath(string modulePath) {
 			return PIModuleIdentifier.getModuleFromPath(modulePath, piServer);
 		}
