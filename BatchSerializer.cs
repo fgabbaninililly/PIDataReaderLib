@@ -150,64 +150,54 @@ namespace PIDataReaderLib {
 		 * Example: 58ebfcf9-f0b8-45f6-8ddd-1b5661a6946e; e9153e3b-d7f6-4530-adb7-eabca433a32d; [path]; Safe-Vap; 0; 5; 2016-12-04 22:40:58; 2016-12-05 00:50:29; [heading uid]; [parentuid, only for subsubbatches]
 		 */
 		private void serializeSubBatchesToLocalFile(UnitBatch refUnitBatch, string subBatchOutFilePath) {
-			
+			int level = 0;
+			string path = @"\";
+
 			foreach (SubBatch subBatch in refUnitBatch.subBatches) {
-				StringBuilder sb = new StringBuilder();
-				logger.Info(">>>Serializing sub batch {0}", subBatch.uid);
-
-				string hadoopStartDate = getHadoopDate(subBatch.starttime);
-				string hadoopEndDate = "";
-				if (null == subBatch.endtime || subBatch.endtime.Length == 0) {
-					logger.Info("Sub batch has an empty end date"); 
-				} else {
-					hadoopEndDate = getHadoopDate(subBatch.endtime);
-				}
-
-				try {
-					sb.AppendFormat(@"{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{1}{7}{1}{8}{1}{9}{1}{10}", subBatch.uid, csvSeparator, refUnitBatch.uid, subBatch.path, subBatch.name, 0, subBatch.subBatchItems.Count, hadoopStartDate, hadoopEndDate, subBatch.headinguid, null);
-					swSubBatch.WriteLine(sb.ToString());
-					swSubBatch.Flush();
-				} catch (Exception e) {
-					logger.Error(">>>Error while serializing sub batch {0}", subBatch.uid);
-					logger.Error(">>>Details: {0}", e.ToString());
-				}
-				
-				if (null != subBatch.subBatchItems && subBatch.subBatchItems.Count > 0) {
-					serializeSubBatchItemsToLocalFile(refUnitBatch, subBatch, subBatchOutFilePath);
-				}
+				writeSubBatchToLocalFile(subBatch, refUnitBatch.uid, null, path, level);
 				logger.Info(">>>Completed serializing sub batch {0}", subBatch.uid);
+
+				recurseSerializeSubBatchesToLocalFile(subBatch, refUnitBatch.uid, path, level);
 			}
 		}
 
-		/*
-		 * Same format as that for sub batch files
-		 */
-		private void serializeSubBatchItemsToLocalFile(UnitBatch refUnitBatch, SubBatch refSubBatch, string subBatchOutFilePath) {
+		private void recurseSerializeSubBatchesToLocalFile(SubBatch subBatch, string refUnitBatchUid, string path, int level) {
+			if (null == subBatch || 0 == subBatch.subBatches.Count) {
+				return;
+			}
+			level++;
 
-			foreach (SubBatchItem subBatchItem in refSubBatch.subBatchItems) {
-				StringBuilder sb = new StringBuilder();
-				logger.Info(">>>>Serializing sub batch item {0}", subBatchItem.uid);
+			path += subBatch.name + @"\";
+			foreach (SubBatch subBatchChild in subBatch.subBatches) {
+				writeSubBatchToLocalFile(subBatchChild, refUnitBatchUid, subBatch.uid, path, level);
+				logger.Info(">>>Completed serializing sub batch {0}, level = {1}", subBatchChild.uid, level);
 
-				string hadoopStartDate = getHadoopDate(subBatchItem.starttime);
-				string hadoopEndDate = "";
-				if (null == subBatchItem.endtime || subBatchItem.endtime.Length == 0) {
-					logger.Info("Sub batch item has an empty end date"); 
-				} else {
-					hadoopEndDate = getHadoopDate(subBatchItem.endtime);
-				}
-
-				try { 
-					sb.AppendFormat(@"{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{1}{7}{1}{8}{1}{9}{1}{10}", subBatchItem.uid, csvSeparator, refUnitBatch.uid, subBatchItem.path, subBatchItem.name, 1, 0, hadoopStartDate, hadoopEndDate, subBatchItem.headinguid, refSubBatch.uid);
-					swSubBatch.WriteLine(sb.ToString());
-					swSubBatch.Flush();
-				} catch(Exception e) {
-					logger.Error(">>>>Error while serializing sub batch item {0}", subBatchItem.uid);
-					logger.Error(">>>>Details: {0}", e.ToString());
-				}
-				logger.Info(">>>>Completed serializing sub batch item {0}", subBatchItem.uid);
+				recurseSerializeSubBatchesToLocalFile(subBatchChild, refUnitBatchUid, path, level);
 			}
 		}
 
+		private void writeSubBatchToLocalFile(SubBatch subBatch, string refUnitBatchId, string parentUid, string path, int level) {
+			StringBuilder sb = new StringBuilder();
+			logger.Info(">>>Serializing sub batch {0}", subBatch.uid);
+
+			string hadoopStartDate = getHadoopDate(subBatch.starttime);
+			string hadoopEndDate = "";
+			if (null == subBatch.endtime || subBatch.endtime.Length == 0) {
+				logger.Info("Sub batch has an empty end date");
+			} else {
+				hadoopEndDate = getHadoopDate(subBatch.endtime);
+			}
+
+			try {
+				sb.AppendFormat(@"{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{1}{7}{1}{8}{1}{9}{1}{10}", subBatch.uid, csvSeparator, refUnitBatchId, path, subBatch.name, level, subBatch.subBatches.Count, hadoopStartDate, hadoopEndDate, subBatch.headinguid, parentUid);
+				swSubBatch.WriteLine(sb.ToString());
+				swSubBatch.Flush();
+			} catch (Exception e) {
+				logger.Error(">>>Error while serializing sub batch {0}", subBatch.uid);
+				logger.Error(">>>Details: {0}", e.ToString());
+			}
+		}
+		
 		/*
 		 * If the file specified by path does not exist, it is created. 
 		 * If the file does exist, write operations to the StreamWriter append text to the file. 
