@@ -66,6 +66,12 @@ namespace PIDataReaderLib {
 		}
 
 		private SubBatch buildSubBatch(PISubBatch piSubBatch) {
+			SubBatch subBatch = createSubBatchFromPISubBatch(piSubBatch);
+			recurseSubBatch(piSubBatch, subBatch);
+			return subBatch;
+		}
+
+		private SubBatch createSubBatchFromPISubBatch(PISubBatch piSubBatch) {
 			SubBatch subBatch = new SubBatch();
 
 			subBatch.starttime = piSubBatch.StartTime.LocalDate.ToString(dateFormat);
@@ -75,20 +81,31 @@ namespace PIDataReaderLib {
 			} else {
 				subBatch.endtime = "";
 			}
-			
+
 			subBatch.name = piSubBatch.Name;
-			if (null != piSubBatch.PIHeading) { 
+			if (null != piSubBatch.PIHeading) {
 				subBatch.headinguid = piSubBatch.PIHeading.UniqueID;
 			}
 			subBatch.uid = piSubBatch.UniqueID;
 
-			foreach(PISubBatch piSubBatchItem in piSubBatch.PISubBatches) {
-				subBatch.subBatchItems.Add(buildSubBatchItem(piSubBatchItem));
-			}
-			
 			return subBatch;
 		}
 
+		private void recurseSubBatch(PISubBatch piSubBatch, SubBatch subBatch) {
+			if (null == piSubBatch.PISubBatches || 0 == piSubBatch.PISubBatches.Count) {
+				return;
+			}
+
+			foreach(PISubBatch piSubBatchChld in piSubBatch.PISubBatches) {
+				SubBatch subBatchChild = createSubBatchFromPISubBatch(piSubBatchChld);
+				subBatch.subBatches.Add(subBatchChild);
+				recurseSubBatch(piSubBatchChld, subBatchChild);
+			}
+
+			return;
+		}
+
+		/*
 		private SubBatchItem buildSubBatchItem(PISubBatch piSubBatchItem) {
 			SubBatchItem subBatchItem = new SubBatchItem();
 			subBatchItem.starttime = piSubBatchItem.StartTime.LocalDate.ToString(dateFormat);
@@ -102,6 +119,7 @@ namespace PIDataReaderLib {
 			subBatchItem.uid = piSubBatchItem.UniqueID;
 			return subBatchItem;
 		}
+		*/
 
 	}
 }

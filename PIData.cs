@@ -172,18 +172,18 @@ namespace PIDataReaderLib {
 		[XmlAttribute("headinguid")]
 		public string headinguid;
 
-		[XmlAttribute("path")]
-		public string path;
+		//[XmlAttribute("path")]
+		//public string path;
 
-		[XmlElement("subbatchitem")]
-		public List<SubBatchItem> subBatchItems { get; set; }
+		[XmlElement("subbatch")]
+		public List<SubBatch> subBatches { get; set; }
 
 		public SubBatch() {
-			subBatchItems = new List<SubBatchItem>();
+			subBatches = new List<SubBatch>();
 		}
-
 	}
 
+	/*
 	public class SubBatchItem {
 		[XmlAttribute("uid")]
 		public string uid;
@@ -203,6 +203,7 @@ namespace PIDataReaderLib {
 		[XmlAttribute("path")]
 		public string path;
 	}
+	*/
 
 	public class Tag {
 		[XmlAttribute("name")]
