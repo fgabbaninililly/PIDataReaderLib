@@ -70,10 +70,8 @@ namespace PIDataReaderLib {
 					string valueStr = tagInfoArray[1];
 					string statusString = "0";
 					try {
-						if (!tag.getIsPhaseTag()) {
-							//if tag is not a phase, this should be a valid double number...
-							Double valueDbl = Double.Parse(valueStr);
-						} else {
+
+						if (tag.getIsPhaseTag()) {
 							statusString = valueStr;
 							valueStr = "";
 						}
