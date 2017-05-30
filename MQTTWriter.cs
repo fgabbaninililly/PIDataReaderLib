@@ -74,6 +74,7 @@ namespace PIDataReaderLib {
 				txt = "Unable to connect to broker. Please check that a broker is up and running";
 				logger.Error(txt);
 				logger.Error("Details: {0}", ex.ToString());
+				throw ex;
 			}
 		}
 
