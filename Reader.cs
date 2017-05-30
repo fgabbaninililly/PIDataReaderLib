@@ -63,7 +63,7 @@ namespace PIDataReaderLib {
 					piAFReader.setBoundaryType(boundary);
 					piReader = piAFReader;
 				}
-				logger.Info("Reader successfully built");
+				logger.Info("Reader successfully built. Connecting to PI server named {0}", piServerName);
 			} catch (Exception ex) {
 				string msg = "Fatal error while building reader.";
 				logger.Fatal(msg);
