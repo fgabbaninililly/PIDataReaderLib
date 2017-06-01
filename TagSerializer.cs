@@ -39,6 +39,7 @@ namespace PIDataReaderLib {
 					outFile = File.AppendText(outFileFullPath);
 				} else {
 					outFile = File.CreateText(outFileFullPath);
+					writeTagTblHeader(outFile);
 				}
 
 				foreach (Tag tag in tags) {
@@ -53,6 +54,13 @@ namespace PIDataReaderLib {
 					outFile.Close();
 				}
 			}
+		}
+
+		private void writeTagTblHeader(StreamWriter sw) {
+			StringBuilder sb = new StringBuilder();
+			sb.AppendFormat("tag,time,value,svalue,status,flags");
+			sw.WriteLine(sb.ToString());
+			sw.Flush();
 		}
 
 		private void serializeTagToLocalFile(Tag tag, StreamWriter outFile) {

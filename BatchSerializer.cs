@@ -39,6 +39,7 @@ namespace PIDataReaderLib {
 			if (null == swBatch) {
 				return false;
 			}
+			
 			swUnitBatch = getWriter(unitBatchOutFilePath, append);
 			if (null == swUnitBatch) {
 				return false;
@@ -48,6 +49,13 @@ namespace PIDataReaderLib {
 			if (null == swSubBatch) {
 				return false;
 			}
+
+			if (!append) {
+				writeBatchTblHeader();
+				writeUnitBatchTblHeader();
+				writeSubBatchTblHeader();
+			}
+
 			return true;
 		}
 
@@ -231,5 +239,27 @@ namespace PIDataReaderLib {
 
 			return hDate;
 		}
+
+		private void writeBatchTblHeader() {
+			StringBuilder sb = new StringBuilder();
+			sb.AppendFormat("uid,batchid,starttime,endtime,product,recipe,campaignuid");
+			swBatch.WriteLine(sb.ToString());
+			swBatch.Flush();
+		}
+
+		private void writeUnitBatchTblHeader() {
+			StringBuilder sb = new StringBuilder();
+			sb.AppendFormat("uid,batchid,starttime,endtime,product,procedure,moduleuid,batchuid");
+			swUnitBatch.WriteLine(sb.ToString());
+			swUnitBatch.Flush();
+		}
+
+		private void writeSubBatchTblHeader() {
+			StringBuilder sb = new StringBuilder();
+			sb.AppendFormat("uid,unitbatchuid,path,name,level,childcount,starttime,endtime,headinguid,parentuid");
+			swSubBatch.WriteLine(sb.ToString());
+			swSubBatch.Flush();
+		}
+
 	}
 }
