@@ -62,12 +62,6 @@ namespace PIDataReaderLib {
 		[XmlArrayItem("connection")]
 		public List<Connection> connections { get; set; }
 
-		[XmlArrayItem("outputchannel")]
-		public List<OutputChannel> outputchannels { get; set; }
-
-		[XmlElement("log")]
-		public Log log { get; set; }
-
 		[XmlElement("read")]
 		public Read read { get; set; }
 
@@ -85,16 +79,6 @@ namespace PIDataReaderLib {
 			foreach (Connection connection in connections) {
 				if (connection.name.ToLower().Equals(name)) {
 					return connection;
-				}
-			}
-			return null;
-		}
-
-		[System.Obsolete("Deprecated method. Remove from next version.")]
-		public OutputChannel getOutputChannelByName(string name) {
-			foreach (OutputChannel outChannel in outputchannels) {
-				if (outChannel.name.ToLower().Equals(name)) {
-					return outChannel;
 				}
 			}
 			return null;
@@ -268,14 +252,6 @@ namespace PIDataReaderLib {
 		public string value;
 	}
 	
-	public class Log {
-		[XmlAttribute("outfolder")]
-		public string outFolder;
-		
-		[XmlAttribute("configpath")]
-		public string configPath;
-	}
-	
 	public class Read {
 		public const string READMODE_TAG = "tag";
 		public const string READMODE_BATCH = "batch";
@@ -390,26 +366,6 @@ namespace PIDataReaderLib {
 		
 		[XmlAttribute("boundary")]
 		public string boundary;
-	}
-
-	public class OutputChannel {
-		[XmlAttribute("name")]
-		public string name;
-
-		[XmlAttribute("connection")]
-		public string connection;
-
-		[XmlArrayItem("parameter")]
-		public List<Parameter> parameters { get; set; }
-
-		public string getParameterValueByName(string parameterName) {
-			foreach (Parameter parameter in parameters) {
-				if (parameter.name.ToLower().Equals(parameterName)) {
-					return parameter.value;
-				}
-			}
-			return null;
-		}
 	}
 
 	public class ReadExtent {
