@@ -12,6 +12,12 @@ namespace PIDataReaderLib {
 		public const string UNIT_DAYS = "d";
 	}
 
+	public class TimeMultipliers {
+		public const int HOURS_IN_DAY = 24;
+		public const int SECONDS_IN_HOUR = 3600;
+		public const int SECONDS_IN_DAY = SECONDS_IN_HOUR * HOURS_IN_DAY;
+	}
+
 	public class ConfigurationErrors : Dictionary<int, string> {
 		public static readonly int CFGERR_NONE = 0;
 
@@ -440,10 +446,10 @@ namespace PIDataReaderLib {
 		public double getFrequencySecondsAsDouble() {
 			double multiplier = 1.0;
 			if (unit.ToLower().Equals(TimeUnit.UNIT_DAYS)) {
-				multiplier = 87400;
+				multiplier = TimeMultipliers.SECONDS_IN_DAY;
 			}
 			if (unit.ToLower().Equals(TimeUnit.UNIT_HOURS)) {
-				multiplier = 3600;
+				multiplier = TimeMultipliers.SECONDS_IN_HOUR;
 			}
 			return double.Parse(value) * multiplier;
 		}
@@ -451,10 +457,10 @@ namespace PIDataReaderLib {
 		public long getReadbackLimitSeconds() {
 			long multiplier = 1;
 			if (unit.ToLower().Equals(TimeUnit.UNIT_DAYS)) {
-				multiplier = 87400;
+				multiplier = TimeMultipliers.SECONDS_IN_DAY;
 			}
 			if (unit.ToLower().Equals(TimeUnit.UNIT_HOURS)) {
-				multiplier = 3600;
+				multiplier = TimeMultipliers.SECONDS_IN_HOUR;
 			}
 			long readBackLimit = 0;
 			if (null != limit && limit.Length > 0) {
@@ -482,10 +488,10 @@ namespace PIDataReaderLib {
 		public double getReadBackSecondsAsDouble() {
 			double multiplier = 1.0;
 			if (unit.ToLower().Equals(TimeUnit.UNIT_DAYS)) {
-				multiplier = 87400;
+				multiplier = TimeMultipliers.SECONDS_IN_DAY;
 			}
 			if (unit.ToLower().Equals(TimeUnit.UNIT_HOURS)) {
-				multiplier = 3600;
+				multiplier = TimeMultipliers.SECONDS_IN_HOUR;
 			}
 			return double.Parse(readpast) * multiplier;
 		}
