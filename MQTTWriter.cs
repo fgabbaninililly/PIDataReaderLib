@@ -40,7 +40,6 @@ namespace PIDataReaderLib {
 		}
 
 		public void initAndConnect() {
-			IPAddress ipAddress = IPAddress.Parse(brokeraddress);
 			mqttClient = new MqttClient(brokeraddress, int.Parse(brokerport), false, null, null, MqttSslProtocols.None);
 			logger.Info("Created new MQTT client connecting to broker {0}", brokeraddress);
 			mqttClient.MqttMsgPublished += MqttClient_MqttMsgPublished;
