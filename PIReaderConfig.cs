@@ -227,6 +227,9 @@ namespace PIDataReaderLib {
 	}
 
 	public class MailData {
+		[XmlAttribute("enabled")]
+		public bool enabled;
+
 		[XmlElement("smtphost")]
 		public string smtphost;
 
