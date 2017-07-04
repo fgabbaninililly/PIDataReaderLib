@@ -36,6 +36,7 @@ namespace PIDataReaderLib {
 		public static readonly int CFGERR_NULL_AFSERVER_NAME = 110;
 		public static readonly int CFGERR_INVALID_READMODE = 120;
 		public static readonly int CFGERR_NULL_AFELEMENTS_OBJECT = 130;
+		public static readonly int CFGERR_NULLORINVALID_MAIL_DATA = 140;
 
 		public ConfigurationErrors() {
 			this.Add(CFGERR_NONE, "No error detected in configuration.");
@@ -73,6 +74,9 @@ namespace PIDataReaderLib {
 
 		[XmlElement("dateformats")]
 		public DateFormats dateFormats { get; set; }
+
+		[XmlElement("maildata")]
+		public MailData mailData { get; set; }
 
 		public bool isTest() {
 			if (test.ToLower().Equals("true")) {
@@ -165,6 +169,14 @@ namespace PIDataReaderLib {
 				return ConfigurationErrors.CFGERR_NULL_READ_OBJECT;
 			}
 
+			//MAIL SECTION
+			if (null == config.mailData) {
+				return ConfigurationErrors.CFGERR_NULLORINVALID_MAIL_DATA;
+			}
+			if (null == config.mailData.smtphost || null == config.mailData.from || null == config.mailData.to || null == config.mailData.subject || null == config.mailData.body) {
+				return ConfigurationErrors.CFGERR_NULLORINVALID_MAIL_DATA;
+			}
+
 			//READ EXTENT SECTION
 			if (null == config.read.readExtent) {
 				return ConfigurationErrors.CFGERR_NULL_READEXTENT_OBJECT;
@@ -202,6 +214,7 @@ namespace PIDataReaderLib {
 			return ConfigurationErrors.CFGERR_NONE;
 		}
 	}
+
 	public class DateFormats {
 		[XmlAttribute("pi")]
 		public string pi;
@@ -211,6 +224,23 @@ namespace PIDataReaderLib {
 
 		[XmlAttribute("hadoop")]
 		public string hadoop;
+	}
+
+	public class MailData {
+		[XmlElement("smtphost")]
+		public string smtphost;
+
+		[XmlElement("from")]
+		public string from;
+
+		[XmlElement("to")]
+		public string to;
+
+		[XmlElement("subject")]
+		public string subject;
+
+		[XmlElement("body")]
+		public string body;
 	}
 
 	public class Connection {
