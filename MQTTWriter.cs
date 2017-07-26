@@ -39,6 +39,10 @@ namespace PIDataReaderLib {
 			this.lastWillMessage = String.Format("Client {0} failed", this.clientname);
 		}
 
+		public string getClientName() {
+			return clientname;
+		}
+
 		public void initAndConnect() {
 			mqttClient = new MqttClient(brokeraddress, int.Parse(brokerport), false, null, null, MqttSslProtocols.None);
 			logger.Info("Created new MQTT client connecting to broker {0}", brokeraddress);
