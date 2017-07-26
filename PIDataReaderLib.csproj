@@ -33,9 +33,8 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="M2Mqtt.Net, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\bin\M2Mqtt.Net.dll</HintPath>
+    <Reference Include="M2Mqtt.Net">
+      <HintPath>lib\M2Mqtt.Net.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\PIDataReader\packages\NLog.4.4.4\lib\net45\NLog.dll</HintPath>
