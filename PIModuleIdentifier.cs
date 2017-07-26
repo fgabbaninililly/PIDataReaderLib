@@ -24,8 +24,8 @@ namespace PIDataReaderLib {
 				module = piSDKServerInstance.PIModuleDB.PIModules[moduleList.First()];
 				moduleList.RemoveAt(0);
 				module = recurseModule(module, moduleList, piSDKServerInstance);
-			} catch (Exception) {
-				throw new Exception("Unable to find a valid module from path: " + path);
+			} catch (Exception e) {
+				throw new Exception("Unable to find a valid module from path: " + path + ". Details " + e.Message);
 			}
 			if (null != module) {
 				return module;
