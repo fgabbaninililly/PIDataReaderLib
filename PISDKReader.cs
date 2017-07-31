@@ -63,11 +63,12 @@ namespace PIDataReaderLib {
 			foreach (string tagName in tagNameList) {
 				try {
 					piPoint = piServer.PIPoints[tagName];
-					Tag outTag = new Tag();
-					outTag.name = piPoint.Name;
-					outTag.setIsPhaseTag(phaseTags);
 					PIValues lValues = piPoint.Data.RecordedValues(startTime, endTime);
 					if (lValues.Count > 0) {
+						Tag outTag = new Tag();
+						outTag.name = piPoint.Name;
+						outTag.setIsPhaseTag(phaseTags);
+						outTag.hasStringValues = (lValues[1].Value.GetType() == typeof(string));
 						StringBuilder tagValues = new StringBuilder();
 						//PIValue collection index is 1-based!!!
 						for (int i = 1; i <= lValues.Count; i++) {
@@ -76,7 +77,6 @@ namespace PIDataReaderLib {
 							if (phaseTags) {
 								tVal = piValue.Value.Name.ToString();
 							}
-							//tagValues.AppendFormat("{0}:{1},", piValue.TimeStamp.LocalDate.ToString(dateFormat), piValue.Value.ToString());
 							tagValues.AppendFormat("{0}:{1},", piValue.TimeStamp.LocalDate.ToString(dateFormat), tVal);
 							lastReadRecordCount = lastReadRecordCount + 1;
 						}
@@ -88,7 +88,6 @@ namespace PIDataReaderLib {
 					throw new Exception("Unable to read values for tag " + tagName + ". Details: " + ex.Message);
 				}
 			}
-			//readFinishedTimestamp = DateTime.Now;
 			return tagList;
 		}
 		

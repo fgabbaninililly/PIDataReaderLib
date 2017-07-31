@@ -105,10 +105,6 @@ namespace PIDataReaderLib {
 
 			List<Tag> tagList = new List<Tag>();
 			foreach (PIPoint pt in pointList) {
-				Tag tag = new Tag();
-				tag.name = pt.Name;
-				tag.setIsPhaseTag(phaseTags);
-
 				try {
 					StringBuilder sb = new StringBuilder();
 					AFValues afVals = pt.RecordedValues(timeRange, boundaryType, "", false);
@@ -119,14 +115,18 @@ namespace PIDataReaderLib {
 					if (sb.Length > 0) {
 						sb.Remove(sb.Length - 1, 1);
 					}
-
-					tag.tagvalues = sb.ToString();
+					if (afVals.Count > 0) {
+						Tag tag = new Tag();
+						tag.name = pt.Name;
+						tag.setIsPhaseTag(phaseTags);
+						tag.hasStringValues = (afVals[0].Value.GetType() == typeof(string));
+						tag.tagvalues = sb.ToString();
+						tagList.Add(tag);
+					}
 				} catch (Exception ex) {
-					throw new Exception("Unable to read values for tag " + tag.name + ". Details: " + ex.Message);
+					throw new Exception("Unable to read values for tag " + pt.Name + ". Details: " + ex.Message);
 				}
-				tagList.Add(tag);
 			}
-			//readFinishedTimestamp = DateTime.Now;
 			return tagList;
 		}
 

@@ -65,7 +65,7 @@ namespace PIDataReaderLib {
 
 		private void serializeTagToLocalFile(Tag tag, StreamWriter outFile) {
 			//sample tag values: 2017-02-13T11-47-16:236.375,2017-02-13T11-48-12:No Data
-			//sample csv line for hadoop should be: ITP_MTC_AE-066-491-01.P10.PV, 2016-08-22 11:49:03, -9.2926378, null, 0
+			//sample csv line should be: ITP_MTC_AE-066-491-01.P10.PV, 2016-08-22 11:49:03, -9.2926378, null, 0
 			if (null == tag.tagvalues || 0 == tag.tagvalues.Length) {
 				return;
 			}
@@ -78,7 +78,6 @@ namespace PIDataReaderLib {
 					string valueStr = tagInfoArray[1];
 					string statusString = "0";
 					try {
-
 						if (tag.getIsPhaseTag()) {
 							statusString = valueStr;
 							valueStr = "";
@@ -87,15 +86,29 @@ namespace PIDataReaderLib {
 						string hadoopDate = dt.ToString(outDateFormat);
 
 						lineBuilder = new StringBuilder();
-						lineBuilder.AppendFormat("{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}",
-							 tag.name,				//0
+						if (tag.hasStringValues) {
+							//tag contains string values: serialize values in the corresponding "svalue" field in the csv
+							lineBuilder.AppendFormat("{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}",
+							 tag.name,              //0 tag
 							 csvSeparator,          //1
-							 hadoopDate,            //2
-							 valueStr,              //3
-							 null,                  //4
-							 statusString,			//5
-							 null					//6
+							 hadoopDate,            //2 time
+							 null,					//3 value
+							 valueStr,              //4 svalue
+							 statusString,          //5 status
+							 null                   //6 flag
 							 );
+						} else {
+							//tag contains string values: serialize values in the corresponding "value" field in the csv
+							lineBuilder.AppendFormat("{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}",
+							 tag.name,              //0 tag
+							 csvSeparator,          //1
+							 hadoopDate,            //2 time
+							 valueStr,              //3 value
+							 null,                  //4 svalue
+							 statusString,          //5 status
+							 null                   //6 flag
+							 );
+						}
 						outFile.WriteLine(lineBuilder.ToString());
 						outFile.Flush();
 					} catch(Exception ex) {
