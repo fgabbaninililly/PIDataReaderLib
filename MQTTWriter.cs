@@ -98,7 +98,7 @@ namespace PIDataReaderLib {
 			Stopwatch swatch = Stopwatch.StartNew();
 			string mqttPayloadString = piData.writeToString(serializationType);
 			swatch.Stop();
-			logger.Debug("Time required for serializing data ({0}): {1}s", serializationType, swatch.Elapsed.TotalSeconds.ToString());
+			logger.Trace("Time required for serializing data ({0}): {1}s", serializationType, swatch.Elapsed.TotalSeconds.ToString());
 
 			if (!mqttClient.IsConnected) {
 				logger.Error("Cannot publish data: client is not connected to MQTT broker.");
