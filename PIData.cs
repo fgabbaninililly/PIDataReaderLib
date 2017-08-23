@@ -215,6 +215,7 @@ namespace PIDataReaderLib {
 		[XmlAttribute("isphase")]
 		public string isPhase;
 
+		[XmlIgnoreAttribute]
 		public bool hasStringValues;
 
 		public Tag() {
