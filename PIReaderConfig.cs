@@ -26,6 +26,7 @@ namespace PIDataReaderLib {
 		public static readonly int CFGERR_NULL_MQTTCONNECTION_OBJECT = 30;
 		public static readonly int CFGERR_NULL_AFCONNECTION_OBJECT = 31;
 		public static readonly int CFGERR_NULL_READ_OBJECT = 40;
+		public static readonly int CFGERR_INCONSISTENT_READMODE = 41;
 		public static readonly int CFGERR_NULL_READEXTENT_OBJECT = 50;
 		public static readonly int CFGERR_NULL_READEXTENTTYPE_OBJECT = 51;
 		public static readonly int CFGERR_NULL_READEXTENTFREQ_OBJECT = 60;
@@ -55,6 +56,7 @@ namespace PIDataReaderLib {
 			this.Add(CFGERR_NULL_AFSERVER_NAME, "Null or invalid reference to AF server or database. Please check your xml configuration file.");
 			this.Add(CFGERR_INVALID_READMODE, "Null or invalid read mode. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_AFELEMENTS_OBJECT, "Null reference to AF element list. Please check your xml configuration file.");
+			this.Add(CFGERR_INCONSISTENT_READMODE, "Inconsistent read mode. Please specify valid equipments or batches according to the read mode.");
 		}
 	}
 
@@ -165,8 +167,21 @@ namespace PIDataReaderLib {
 				return ConfigurationErrors.CFGERR_NULL_MQTTCONNECTION_OBJECT;
 			}
 
+			//READ SECTION
 			if (null == config.read) {
 				return ConfigurationErrors.CFGERR_NULL_READ_OBJECT;
+			}
+			if (config.read.readMode.Equals(Read.READMODE_TAG)) {
+				//expecting to read tags...need to have equipments
+				if (null == config.read.equipments || 0 == config.read.equipments.Count) {
+					return ConfigurationErrors.CFGERR_INCONSISTENT_READMODE;
+				}
+			}
+			if (config.read.readMode.Equals(Read.READMODE_BATCH)) {
+				//expecting to read batches...need to have batches
+				if (null == config.read.batches || 0 == config.read.batches.Count) {
+					return ConfigurationErrors.CFGERR_INCONSISTENT_READMODE;
+				}
 			}
 
 			//MAIL SECTION
