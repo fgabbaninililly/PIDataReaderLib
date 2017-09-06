@@ -192,8 +192,13 @@ namespace PIDataReaderLib {
 		private void MqttClient_MqttMsgPublished(object sender, MqttMsgPublishedEventArgs e) {
 			grandTotalSwatch.Stop();
 			double grandTotalTimeSec = grandTotalSwatch.Elapsed.TotalSeconds;
-			publishedConfirmedMessageCount++;
 
+			if (e.IsPublished) {
+				publishedConfirmedMessageCount++;
+			} else {
+				logger.Error("Message having id {0} was not confirmed to be published", e.MessageId);
+			}
+			
 			logger.Info("Message [{0}] - Publish complete. Metrics since startup: published = {1}, publish confirmed = {2}.", e.MessageId.ToString(), publishedMessageCount, publishedConfirmedMessageCount);
 			
 			double thrput = 0;
