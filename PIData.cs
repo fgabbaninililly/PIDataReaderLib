@@ -118,6 +118,9 @@ namespace PIDataReaderLib {
 		[XmlAttribute("recipe")]
 		public string recipe;
 
+		[XmlAttribute("campaignuid")]
+		public string campaignuid;
+
 		[XmlElement("unitbatch")]
 		public List<UnitBatch> unitBatches { get; set; }
 
@@ -148,6 +151,9 @@ namespace PIDataReaderLib {
 		[XmlAttribute("moduleuid")]
 		public string moduleuid;
 
+		[XmlAttribute("batchuid")]
+		public string batchuid;
+
 		[XmlElement("subbatch")]
 		public List<SubBatch> subBatches { get; set; }
 
@@ -159,6 +165,9 @@ namespace PIDataReaderLib {
 	public class SubBatch {
 		[XmlAttribute("uid")]
 		public string uid;
+
+		[XmlAttribute("unitbatchuid")]
+		public string unitbatchuid;
 
 		[XmlAttribute("starttime")]
 		public string starttime;
@@ -172,8 +181,17 @@ namespace PIDataReaderLib {
 		[XmlAttribute("headinguid")]
 		public string headinguid;
 
-		//[XmlAttribute("path")]
-		//public string path;
+		[XmlAttribute("level")]
+		public int level;
+
+		[XmlAttribute("childcount")]
+		public int childcount;
+
+		[XmlAttribute("parentuid")]
+		public string parentuid;
+
+		[XmlAttribute("path")]
+		public string path;
 
 		[XmlElement("subbatch")]
 		public List<SubBatch> subBatches { get; set; }
@@ -181,6 +199,11 @@ namespace PIDataReaderLib {
 		public SubBatch() {
 			subBatches = new List<SubBatch>();
 		}
+
+		public override string ToString() {
+			return uid;
+		}
+
 	}
 
 	/*
@@ -234,6 +257,22 @@ namespace PIDataReaderLib {
 				return false;
 			}
 			return true;
+		}
+
+		public void addTimedValue(string dateTimeStr, string valueStr) {
+			if (null == tagvalues || 0 == tagvalues.Length) {
+				tagvalues += String.Format("{0}:{1}", dateTimeStr, valueStr);
+			} else { 
+				tagvalues += String.Format(",{0}:{1}", dateTimeStr, valueStr);
+			}
+		}
+
+		public void addTimedTriple(string dateTimeStr, string valueStr, string svalueStr, string statusStr) {
+			if (null == tagvalues || 0 == tagvalues.Length) {
+				tagvalues += String.Format("{0}:{1}|{2}|{3}", dateTimeStr, valueStr, svalueStr, statusStr);
+			} else {
+				tagvalues += String.Format(",{0}:{1}", dateTimeStr, valueStr, svalueStr, statusStr);
+			}
 		}
 	}
 }

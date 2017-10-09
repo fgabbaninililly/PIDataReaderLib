@@ -9,9 +9,8 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PIDataReaderLib</RootNamespace>
     <AssemblyName>PIDataReaderLib</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,12 +36,10 @@
       <HintPath>lib\M2Mqtt.Net.dll</HintPath>
     </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <HintPath>..\PIDataReader\packages\NLog.4.4.4\lib\net45\NLog.dll</HintPath>
+      <HintPath>packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="OSIsoft.AFSDK, Version=4.0.0.0, Culture=neutral, PublicKeyToken=6238be57836698e6, processorArchitecture=MSIL">
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </Reference>
+    <Reference Include="OSIsoft.AFSDK, Version=4.0.0.0, Culture=neutral, PublicKeyToken=6238be57836698e6, processorArchitecture=MSIL" />
     <Reference Include="OSIsoft.PISDK, Version=1.4.0.0, Culture=neutral, PublicKeyToken=c3309f0734ba2805, processorArchitecture=AMD64">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
@@ -62,11 +59,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AFData.cs" />
     <Compile Include="AFElementBuilder.cs" />
     <Compile Include="AFElementReader.cs" />
     <Compile Include="BatchSerializer.cs" />
-    <Compile Include="AFData.cs" />
-    <Compile Include="PIReaderConfig.cs" />
     <Compile Include="EntityBuilder.cs" />
     <Compile Include="EntityNavigator.cs" />
     <Compile Include="FileWriter.cs" />
@@ -74,6 +70,8 @@
     <Compile Include="PIAFReader.cs" />
     <Compile Include="PIData.cs" />
     <Compile Include="PIModuleIdentifier.cs" />
+    <Compile Include="PIOLEDBReader.cs" />
+    <Compile Include="PIReaderConfig.cs" />
     <Compile Include="PIReaderInterface.cs" />
     <Compile Include="PISDKReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -84,8 +82,10 @@
     <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
