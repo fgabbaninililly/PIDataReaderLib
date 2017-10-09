@@ -295,6 +295,7 @@ namespace PIDataReaderLib {
 
 		public const string PARAM_VALUE_SDK_AF = "afsdk";
 		public const string PARAM_VALUE_SDK_PI = "pisdk";
+		public const string PARAM_VALUE_SDK_OLEDB = "oledb";
 		public const string PARAM_VALUE_BOUNDARY_INSIDE = "inside";
 		public const string PARAM_VALUE_BOUNDARY_OUTSIDE = "outside";
 		public const string PARAM_VALUE_BOUNDARY_INTERPOLATED = "interpolated";
@@ -338,6 +339,7 @@ namespace PIDataReaderLib {
 	}
 
 	public class BatchCfg {
+		
 		[XmlAttribute("usebatch")]
 		public string useBatch;
 
@@ -349,7 +351,7 @@ namespace PIDataReaderLib {
 
 		[XmlAttribute("usephase")]
 		public string usePhase;
-
+		
 		[XmlAttribute("modulepath")]
 		public string modulePath;
 

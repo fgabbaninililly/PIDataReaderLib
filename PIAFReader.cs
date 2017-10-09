@@ -45,6 +45,10 @@ namespace PIDataReaderLib {
 			return sb.ToString();
 		}
 
+		public PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath, bool readBatches, bool readUnitBatches, bool readSubBatches, bool readPhases) {
+			throw new Exception("Do not use AF SDK to read batch information");
+		}
+		
 		public PIData Read(string tagListCsvString, string phaseTagListCsvString, DateTime startTime, DateTime endTime) {
 			SortedSet<string> tagNameList = new SortedSet<string>();
 			if (null != tagListCsvString && tagListCsvString.Length > 0) {

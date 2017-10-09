@@ -111,5 +111,19 @@ namespace PIDataReaderLib {
 			// Return the hexadecimal string.
 			return sBuilder.ToString();
 		}
+
+		public static string stringList2QuotedCsv(SortedSet<string> strList) {
+			if (0 == strList.Count) {
+				return "";
+			}
+
+			StringBuilder sb = new StringBuilder();
+			foreach(string s in strList) {
+				sb.Append("'" + s + "',");
+			}
+			sb.Remove(sb.Length - 1, 1);
+
+			return sb.ToString();
+		}
 	}
 }

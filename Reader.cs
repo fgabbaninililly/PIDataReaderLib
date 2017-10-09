@@ -50,18 +50,30 @@ namespace PIDataReaderLib {
 		public void init() {
 			logger.Info("Initializing reader...");
 			try {
-				bool usesPISDK = piSdkType.ToLower().Equals(Parameter.PARAM_VALUE_SDK_PI);
-				if (usesPISDK || readBatchMode) {
-					//read using PI SDK (batch mode requires PI SDK)
+				if (piSdkType.ToLower().Equals(Parameter.PARAM_VALUE_SDK_OLEDB)) {
+					//use PI OLEDB
+					logger.Info("Using OLEDB");
+					PIOLEDBReader piOLEDBReader = new PIOLEDBReader(piServerName, outDateFormat, piDateFormat);
+					piReader = piOLEDBReader;
+				} else if (piSdkType.ToLower().Equals(Parameter.PARAM_VALUE_SDK_AF)) {
+					//use PI AF SDK
+					logger.Info("Using PI AF SDK. Boundary condition: {0}", boundary);
+					//output error message in case we are asked to read batches using AF SDK
+					if (readBatchMode) {
+						string str = String.Format("Cannot read batch information using PI AF SDK. Please specify {0} or {1} to read batch information.", Parameter.PARAM_VALUE_SDK_OLEDB, Parameter.PARAM_VALUE_SDK_PI);
+						logger.Fatal(str);
+						piReader = null;
+						throw new Exception(str);
+					} else {
+						PIAFReader piAFReader = new PIAFReader(piServerName, outDateFormat, piDateFormat);
+						piAFReader.setBoundaryType(boundary);
+						piReader = piAFReader;
+					}
+				} else {
+					//use PI SDK
 					logger.Info("Using PI SDK");
 					PISDKReader piSDKReader = new PISDKReader(piServerName, outDateFormat, piDateFormat);
 					piReader = piSDKReader;
-				} else {
-					//read using AF SDK
-					logger.Info("Using PI AF SDK. Boundary condition: {0}", boundary);
-					PIAFReader piAFReader = new PIAFReader(piServerName, outDateFormat, piDateFormat);
-					piAFReader.setBoundaryType(boundary);
-					piReader = piAFReader;
 				}
 				logger.Info("Reader successfully built. Connecting to PI server named {0}", piServerName);
 			} catch (Exception ex) {
@@ -109,7 +121,6 @@ namespace PIDataReaderLib {
 		public Dictionary<string, PIData> readBatches( PIReaderConfig config, Dictionary<string, ReadInterval> readIntervalsByEquipment) {
 
 			logger.Info(">>Start reading data");
-			PISDKReader sdkReader = (PISDKReader)piReader;
 
 			Dictionary<string, PIData> piDataMap = new Dictionary<string, PIData>();
 			Dictionary<string, double> readTimesMap = new Dictionary<string, double>();
@@ -118,7 +129,7 @@ namespace PIDataReaderLib {
 					ReadInterval rInterval = readIntervalsByEquipment[batchCfg.moduleName];
 					logger.Info("Reading module {0}. Interval [{1}, {2}]", batchCfg.moduleName, rInterval.start.ToString(config.dateFormats.reference), rInterval.end.ToString(config.dateFormats.reference));
 					Stopwatch swatch = Stopwatch.StartNew();
-					PIData piData = sdkReader.ReadBatchTree(rInterval.start, rInterval.end, batchCfg.modulePath, batchCfg.useBatchBool(), batchCfg.useUnitBatchBool(), batchCfg.useSubBatchBool(), batchCfg.usePhaseBool());
+					PIData piData = piReader.ReadBatchTree(rInterval.start, rInterval.end, batchCfg.modulePath, batchCfg.useBatchBool(), batchCfg.useUnitBatchBool(), batchCfg.useSubBatchBool(), batchCfg.usePhaseBool());
 					swatch.Stop();
 					readTimesMap.Add(batchCfg.moduleName, swatch.Elapsed.TotalSeconds);
 					logger.Info("Finished reading module");
