@@ -395,18 +395,22 @@ namespace PIDataReaderLib {
 				tagList.Add(tag);
 			}
 
-			//TODO: phase values can be specified in the "status column": read status column and 
-			//manage it appropriately OR send all values (?)
+			//send all values, separated by '|'
 			string tagSvalue = row[PIOLEDBSQL.PICOMP_FLD_SVALUE].ToString();
 			string tagValue = row[PIOLEDBSQL.PICOMP_FLD_VALUE].ToString();
 			string tagStatus = row[PIOLEDBSQL.PICOMP_FLD_STATUS].ToString();
 
 			DateTime dt = (DateTime)row[PIOLEDBSQL.PICOMP_FLD_TIME];
 			if (tagSvalue.Length != 0) {
-				tag.hasStringValues = true;
+				tag.valueType = typeof(string);
 			} else {
-				tag.hasStringValues = false;
+				if (isPhaseTag) {
+					tag.valueType = row[PIOLEDBSQL.PICOMP_FLD_STATUS].GetType();
+				} else { 
+					tag.valueType = row[PIOLEDBSQL.PICOMP_FLD_VALUE].GetType();
+				}
 			}
+			
 			tag.addTimedTriple(dt.ToString(dateFormat), tagValue, tagSvalue, tagStatus);
 
 		}

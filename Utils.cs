@@ -126,4 +126,61 @@ namespace PIDataReaderLib {
 			return sb.ToString();
 		}
 	}
+	public sealed class TypeUtil {
+		private static volatile TypeUtil instance;
+		private static object syncRoot = new Object();
+		private static HashSet<TypeCode> integerCodes;
+		private static HashSet<TypeCode> decimalCodes;
+		private static HashSet<TypeCode> stringCodes;
+
+		private TypeUtil() {
+			TypeCode[] num = {
+				TypeCode.Byte,
+				TypeCode.Int16,
+				TypeCode.Int32,
+				TypeCode.Int64,
+				TypeCode.SByte,
+				TypeCode.UInt16,
+				TypeCode.UInt32,
+				TypeCode.UInt64 };
+
+			TypeCode[] flt = {
+				TypeCode.Decimal,
+				TypeCode.Double,
+				TypeCode.Single
+			};
+
+			TypeCode[] str = {
+				TypeCode.String
+			};
+
+			integerCodes = new HashSet<TypeCode>(num);
+			decimalCodes = new HashSet<TypeCode>(flt);
+			stringCodes = new HashSet<TypeCode>(str);
+		}
+
+		public static TypeUtil Instance {
+			get {
+				if (instance == null) {
+					lock (syncRoot) {
+						if (instance == null)
+							instance = new TypeUtil();
+					}
+				}
+				return instance;
+			}
+		}
+
+		public bool isInteger(Type t) {
+			return integerCodes.Contains(Type.GetTypeCode(t));
+		}
+
+		public bool isDecimal(Type t) {
+			return decimalCodes.Contains(Type.GetTypeCode(t));
+		}
+
+		public bool isString(Type t) {
+			return stringCodes.Contains(Type.GetTypeCode(t));
+		}
+	}
 }
