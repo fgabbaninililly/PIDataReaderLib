@@ -65,24 +65,9 @@ namespace PIDataReaderLib {
 					piPoint = piServer.PIPoints[tagName];
 					PIValues lValues = piPoint.Data.RecordedValues(startTime, endTime);
 					if (lValues.Count > 0) {
-						Tag outTag = new Tag();
-						outTag.name = piPoint.Name;
-						outTag.setIsPhaseTag(phaseTags);
-						outTag.hasStringValues = (lValues[1].Value.GetType() == typeof(string));
-						StringBuilder tagValues = new StringBuilder();
-						//PIValue collection index is 1-based!!!
-						for (int i = 1; i <= lValues.Count; i++) {
-							PIValue piValue = lValues[i];
-							string tVal = piValue.Value.ToString();
-							if (phaseTags) {
-								tVal = piValue.Value.Name.ToString();
-							}
-							tagValues.AppendFormat("{0}:{1},", piValue.TimeStamp.LocalDate.ToString(dateFormat), tVal);
-							lastReadRecordCount = lastReadRecordCount + 1;
-						}
-						tagValues.Remove(tagValues.Length - 1, 1);
-						outTag.tagvalues = tagValues.ToString();
-						tagList.Add(outTag);
+						Type valType = lValues[1].Value.GetType();
+						Tag tag = setupTagFromLValues(lValues, valType, piPoint.Name, phaseTags);
+						tagList.Add(tag);
 					}
 				} catch (Exception ex) {
 					throw new Exception("Unable to read values for tag " + tagName + ". Details: " + ex.Message);
@@ -90,7 +75,49 @@ namespace PIDataReaderLib {
 			}
 			return tagList;
 		}
-		
+
+		private Tag setupTagFromLValues(PIValues lVals, Type valType, string name, bool isPhaseTag) {
+			Tag tag = new Tag();
+			tag.name = name;
+			tag.setIsPhaseTag(isPhaseTag);
+			tag.valueType = valType;
+			StringBuilder sb = new StringBuilder();
+			for (int i = 1; i <= lVals.Count; i++) {
+				PIValue piValue = lVals[i];
+				serializeLValue(sb, piValue, valType, isPhaseTag);
+				lastReadRecordCount = lastReadRecordCount + 1;
+			}
+			if (sb.Length > 0) {
+				sb.Remove(sb.Length - 1, 1);
+			}
+			tag.tagvalues = sb.ToString();
+			return tag;
+		}
+
+		private void serializeLValueAsTriple(StringBuilder sb, PIValue piValue, Type valType, bool isPhaseTag) {
+			int vStatus = 0;
+			string tagValue = piValue.Value.ToString();
+			string tagSValue = "";
+			if (TypeUtil.Instance.isDecimal(valType)) {
+				tagValue = ((double)piValue.Value).ToString("F8");
+			} else if (TypeUtil.Instance.isString(valType)) {
+				tagSValue = tagValue;
+				tagValue = "";
+			}
+			sb.AppendFormat("{0}:{1}|{2}|{3},", piValue.TimeStamp.LocalDate.ToString(dateFormat), tagValue, tagSValue, vStatus);
+		}
+
+		private void serializeLValue(StringBuilder sb, PIValue piValue, Type valType, bool isPhaseTag) {
+			string tagValue = piValue.Value.ToString();
+			if (TypeUtil.Instance.isDecimal(valType)) {
+				tagValue = ((double)piValue.Value).ToString("F8");
+			}
+			if (isPhaseTag) {
+				tagValue = piValue.Value.Name.ToString();
+			}
+			sb.AppendFormat("{0}:{1},", piValue.TimeStamp.LocalDate.ToString(dateFormat), tagValue);
+		}
+
 		public PIModule getModuleFromPath(string modulePath) {
 			return PIModuleIdentifier.getModuleFromPath(modulePath, piServer);
 		}

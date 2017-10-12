@@ -239,7 +239,7 @@ namespace PIDataReaderLib {
 		public string isPhase;
 
 		[XmlIgnoreAttribute]
-		public bool hasStringValues;
+		public Type valueType;
 
 		public Tag() {
 			isPhase = "false";
@@ -271,7 +271,7 @@ namespace PIDataReaderLib {
 			if (null == tagvalues || 0 == tagvalues.Length) {
 				tagvalues += String.Format("{0}:{1}|{2}|{3}", dateTimeStr, valueStr, svalueStr, statusStr);
 			} else {
-				tagvalues += String.Format(",{0}:{1}", dateTimeStr, valueStr, svalueStr, statusStr);
+				tagvalues += String.Format(",{0}:{1}|{2}|{3}", dateTimeStr, valueStr, svalueStr, statusStr);
 			}
 		}
 	}
