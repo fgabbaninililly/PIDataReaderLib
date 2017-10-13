@@ -36,6 +36,13 @@ namespace PIDataReaderLib {
 		[XmlArrayItem("tag")]
 		public List<Tag> tags { get; set; }
 
+		[XmlIgnore]
+		public bool tagsSpecified {
+			get {
+				return (tags.Count > 0);
+			}
+		}
+
 		public PIData() {
 			batches = new List<Batch>();
 			tags = new List<Tag>();
@@ -205,28 +212,6 @@ namespace PIDataReaderLib {
 		}
 
 	}
-
-	/*
-	public class SubBatchItem {
-		[XmlAttribute("uid")]
-		public string uid;
-
-		[XmlAttribute("starttime")]
-		public string starttime;
-
-		[XmlAttribute("endtime")]
-		public string endtime;
-
-		[XmlAttribute("name")]
-		public string name;
-
-		[XmlAttribute("headinguid")]
-		public string headinguid;
-
-		[XmlAttribute("path")]
-		public string path;
-	}
-	*/
 
 	public class Tag {
 		[XmlAttribute("name")]
