@@ -129,7 +129,7 @@ namespace PIDataReaderLib {
 		 * Any unit batch which has an end time on or after the search start and a start time on or 
 		 * before search end matches the search time criteria.
 		 */
-		public PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath, bool readBatches, bool readUnitBatches, bool readSubBatches, bool readPhases) {
+		public PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath) {
 			PIModule piModule = getModuleFromPath(modulePath);
 
 			PITime piTimeStart = new PITime();

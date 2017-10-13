@@ -340,18 +340,6 @@ namespace PIDataReaderLib {
 
 	public class BatchCfg {
 		
-		[XmlAttribute("usebatch")]
-		public string useBatch;
-
-		[XmlAttribute("useunitbatch")]
-		public string useUnitBatch;
-
-		[XmlAttribute("usesubbatch")]
-		public string useSubBatch;
-
-		[XmlAttribute("usephase")]
-		public string usePhase;
-		
 		[XmlAttribute("modulepath")]
 		public string modulePath;
 
@@ -361,30 +349,6 @@ namespace PIDataReaderLib {
 		[XmlAttribute("mqtttopic")]
 		public string mqttTopic;
 
-		public bool useUnitBatchBool() {
-			if (useUnitBatch.ToLower().Equals("false") || useUnitBatch.ToLower().Equals("no")) {
-				return false;
-			}
-			return true;
-		}
-		public bool useBatchBool() {
-			if (useBatch.ToLower().Equals("false") || useBatch.ToLower().Equals("no")) {
-				return false;
-			}
-			return true;
-		}
-		public bool useSubBatchBool() {
-			if (useSubBatch.ToLower().Equals("false") || useSubBatch.ToLower().Equals("no")) {
-				return false;
-			}
-			return true;
-		}
-		public bool usePhaseBool() {
-			if (usePhase.ToLower().Equals("false") || usePhase.ToLower().Equals("no")) {
-				return false;
-			}
-			return true;
-		}
 	}
 
 	public class EquipmentCfg {

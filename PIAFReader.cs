@@ -45,7 +45,7 @@ namespace PIDataReaderLib {
 			return sb.ToString();
 		}
 
-		public PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath, bool readBatches, bool readUnitBatches, bool readSubBatches, bool readPhases) {
+		public PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath) {
 			throw new Exception("Do not use AF SDK to read batch information");
 		}
 		
