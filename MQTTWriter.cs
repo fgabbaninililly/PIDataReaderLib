@@ -115,7 +115,7 @@ namespace PIDataReaderLib {
 			grandTotalSwatch = Stopwatch.StartNew();
 
 			if (!mqttClient.IsConnected) {
-				logger.Info("No connection to broker detected. Attempting to reconnect.");
+				logger.Error("No connection to broker detected. Attempting to reconnect.");
 				close();
 				initAndConnect();
 			}
@@ -186,7 +186,7 @@ namespace PIDataReaderLib {
 		}
 
 		private void MqttClient_ConnectionClosed(object sender, System.EventArgs e) {
-			logger.Info("Connection to broker was closed");
+			logger.Warn("Connection to broker was closed");
 		}
 
 		private void MqttClient_MqttMsgPublished(object sender, MqttMsgPublishedEventArgs e) {
