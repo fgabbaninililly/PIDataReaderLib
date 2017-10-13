@@ -16,20 +16,12 @@ namespace PIDataReaderLib {
 		PISDK.Server piServer;
 		long lastReadRecordCount;
 
-		//DateTime readFinishedTimestamp;
-
 		public PISDKReader(string piServerName, string outDateFormat, string dateFormatPI) {
 			this.dateFormat = outDateFormat;
 			this.dateFormatPI = dateFormatPI;
 			this.piSDK = new PISDK.PISDK();
 			this.piServer = this.piSDK.Servers[piServerName];
 		}
-
-		/*
-		public DateTime getReadFinishedTime() {
-			return readFinishedTimestamp;
-		}
-		*/
 
 		public long GetLastReadRecordCount() {
 			return lastReadRecordCount;
@@ -167,7 +159,6 @@ namespace PIDataReaderLib {
 				}
 				batch.unitBatches.Add(unitBatch);
 			}
-			//readFinishedTimestamp = DateTime.Now;
 			pidata.readIntervalStart = startTime.ToString(dateFormat);
 			pidata.readIntervalEnd = endTime.ToString(dateFormat);
 			pidata.readFinished = endTime.ToString(dateFormat);
