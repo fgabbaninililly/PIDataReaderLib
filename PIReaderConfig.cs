@@ -283,6 +283,7 @@ namespace PIDataReaderLib {
 		public const string PARAMNAME_PISDKTYPE = "pisdktype";
 		public const string PARAMNAME_PIBOUNDARY = "piboundarytype";
 
+		public const string PARAMNAME_MQTTCLIENTTYPE = "mqttclienttype";
 		public const string PARAMNAME_MQTTBROKERADDRESS = "mqttbrokeraddress";
 		public const string PARAMNAME_MQTTBROKERPORT = "mqttbrokerport";
 		public const string PARAMNAME_MQTTCLIENTNAME = "mqttclientname";
@@ -292,6 +293,9 @@ namespace PIDataReaderLib {
 
 		public const string PARAMNAME_MQTTOUT_TOPIC = "topic";
 		public const string PARAMNAME_MQTTOUT_CLIENTID = "clientid";
+
+		public const string PARAM_VALUE_MQTTCLIENTTYPE_MQTTNET = "MQTTnet";
+		public const string PARAM_VALUE_MQTTCLIENTTYPE_M2MQTT = "M2Mqtt";
 
 		public const string PARAM_VALUE_SDK_AF = "afsdk";
 		public const string PARAM_VALUE_SDK_PI = "pisdk";

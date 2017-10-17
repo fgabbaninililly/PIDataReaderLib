@@ -35,6 +35,14 @@
     <Reference Include="M2Mqtt.Net">
       <HintPath>lib\M2Mqtt.Net.dll</HintPath>
     </Reference>
+    <Reference Include="MQTTnet, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\PIDataReaderApps\PIDataReaderSolution\packages\MQTTnet.2.4.0\lib\net45\MQTTnet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MQTTnet.Core, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\PIDataReaderApps\PIDataReaderSolution\packages\MQTTnet.2.4.0\lib\net45\MQTTnet.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>packages\NLog.4.4.12\lib\net45\NLog.dll</HintPath>
       <Private>True</Private>
@@ -66,6 +74,8 @@
     <Compile Include="EntityBuilder.cs" />
     <Compile Include="EntityNavigator.cs" />
     <Compile Include="FileWriter.cs" />
+    <Compile Include="IMQTTWriter.cs" />
+    <Compile Include="MQTTNetWriter.cs" />
     <Compile Include="MQTTWriter.cs" />
     <Compile Include="PIAFReader.cs" />
     <Compile Include="PIData.cs" />

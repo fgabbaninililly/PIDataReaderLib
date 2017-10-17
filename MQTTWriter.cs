@@ -8,60 +8,44 @@ using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 
 namespace PIDataReaderLib {
-	public class MQTTWriter {
+	public class MQTTWriter : AbstractMQTTWriter {
 
-		private const string MQTT_LASTWILL_TOPIC = "/pireaderlastwill";
-		
-		private string brokeraddress;
-		private string brokerport;
-		private string clientname;
-
-		private string lastWillMessage;
-
-		private MqttClient mqttClient;
-		Stopwatch grandTotalSwatch;
-		long publishedBytesInSchedule;
-		
-		string serializationType = "xml";
-		
 		private static Logger logger = LogManager.GetCurrentClassLogger();
-
-		public delegate void MQTTPublishTerminated(MQTTPublishTerminatedEventArgs e);
-		public event MQTTPublishTerminated MQTTWriter_PublishCompleted;
-
-		public delegate void MQTTClientClosed(MQTTClientClosedEventArgs e);
-		public event MQTTClientClosed MQTTWriter_ClientClosed;
-
+		Stopwatch grandTotalSwatch;
 		private ConcurrentDictionary<string, ConcurrentQueue<string>> messageQueuesByTopic = new ConcurrentDictionary<string, ConcurrentQueue<string>>();
 
-		private ulong publishedMessageCount = 0;
-		private ulong publishedConfirmedMessageCount = 0;
+		private MqttClient mqttClient;
 
-		public MQTTWriter(string brokeraddress, string brokerport, string clientname) {
+		private ulong publishedMessageCount = 0;
+				
+		internal MQTTWriter(string brokeraddress, int brokerport, string clientname) {
 			this.brokeraddress = brokeraddress;
 			this.brokerport = brokerport;
 			this.clientname = clientname;
 
 			this.lastWillMessage = String.Format("Client {0} failed", this.clientname);
+
+			publishedBytesInSchedule = 0;
+			publishedConfirmedMessageCount = 0;
 		}
 
-		public string getClientName() {
+		public override string getClientName() {
 			return clientname;
 		}
 
-		public void initAndConnect() {
+		public override void initAndConnect() {
 			create();
 			connect();
 		}
 
-		public bool isConnected() {
+		public override bool isConnected() {
 			if (null == mqttClient) {
 				return false;
 			}
 			return mqttClient.IsConnected;
 		}
 
-		public void close() {
+		public override void close() {
 			if (null == mqttClient) {
 				logger.Warn("Nothing to disconnect: null client!!!");
 				return;
@@ -71,10 +55,7 @@ namespace PIDataReaderLib {
 				mqttClient.ConnectionClosed -= MqttClient_ConnectionClosed;
 				mqttClient.Disconnect();
 				logger.Info("Client was disconnected from broker {0}", brokeraddress);
-				if (null != MQTTWriter_ClientClosed) {
-					MQTTClientClosedEventArgs ea = new MQTTClientClosedEventArgs();
-					MQTTWriter_ClientClosed(ea);
-				}
+				base.raiseWriterClosed();
 			} catch(Exception e) {
 				logger.Error("Error disconnecting client");
 				logger.Error("Details: {0}", e.Message);
@@ -83,8 +64,8 @@ namespace PIDataReaderLib {
 		}
 
 		private void create() {
-			mqttClient = new MqttClient(brokeraddress, int.Parse(brokerport), false, null, null, MqttSslProtocols.None);
-			logger.Info("Created new MQTT client connecting to broker {0}", brokeraddress);
+			mqttClient = new MqttClient(brokeraddress, brokerport, false, null, null, MqttSslProtocols.None);
+			logger.Info("Created new M2MQTT client connecting to broker {0}", brokeraddress);
 
 			mqttClient.MqttMsgPublished -= MqttClient_MqttMsgPublished;
 			mqttClient.ConnectionClosed -= MqttClient_ConnectionClosed;
@@ -97,7 +78,7 @@ namespace PIDataReaderLib {
 			string txt;
 			try {
 				logger.Info("Attempting connection to broker. Client name is '{0}'", clientname);
-				byte b = mqttClient.Connect(clientname, "", "", false, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, true, MQTT_LASTWILL_TOPIC, lastWillMessage, false, 1000); 
+				byte b = mqttClient.Connect(clientname, "", "", false, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, true, MQTTWriterParams.MQTT_LASTWILL_TOPIC, lastWillMessage, false, 1000); 
 				if (0 == b) {
 					txt = "Connected to broker";
 				} else {
@@ -111,8 +92,9 @@ namespace PIDataReaderLib {
 			}
 		}
 
-		public void write(Dictionary<string, PIData> piDataMap, Dictionary<string, string> topicsMap) {
+		public override void write(Dictionary<string, PIData> piDataMap, Dictionary<string, string> topicsMap) {
 			grandTotalSwatch = Stopwatch.StartNew();
+			publishedBytesInSchedule = 0;
 
 			if (!mqttClient.IsConnected) {
 				logger.Error("No connection to broker detected. Attempting to reconnect.");
@@ -133,10 +115,19 @@ namespace PIDataReaderLib {
 					logger.Error("Details: {0}", e.ToString());
 				}
 			}
+
+			grandTotalSwatch.Stop();
+			double grandTotalTimeSec = grandTotalSwatch.Elapsed.TotalSeconds;
+			double thrput = 0;
+			if (0 != grandTotalTimeSec) {
+				thrput = publishedBytesInSchedule / grandTotalTimeSec;
+			}
+
+			base.raisePublishCompleted(grandTotalTimeSec, thrput, 0);
 		}
 
 		private void write(PIData piData, string topic) {
-			string mqttPayloadString = piData.writeToString(serializationType);
+			string mqttPayloadString = piData.writeToString(MQTTWriterParams.SERIALIZATION_TYPE);
 
 			if (!messageQueuesByTopic.ContainsKey(topic)) {
 				logger.Error("Unable to publish: message queue for topic {0} not found!!");
@@ -154,8 +145,8 @@ namespace PIDataReaderLib {
 					logger.Info("Still no connection to broker...message was queued to be sent in the next round. Topic {0}, queue size {1}", topic, messageQueue.Count);
 				}
 			} catch(Exception ex) {
-				Console.WriteLine("Unexpected error while publishing. Will attempt to publish later. {0} messages in queue.", messageQueue.Count);
-				Console.WriteLine("Details: {0}", ex.Message);
+				logger.Info("Unexpected error while publishing. Will attempt to publish later. {0} messages in queue.", messageQueue.Count);
+				logger.Info("Details: {0}", ex.Message);
 			}
 		}
 
@@ -177,9 +168,9 @@ namespace PIDataReaderLib {
 			try {
 				payload = System.Text.Encoding.UTF8.GetBytes(mqttMsg);
 				ulong msgId = mqttClient.Publish(topic, payload, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
-				publishedBytesInSchedule = payload.Length;
+				publishedBytesInSchedule += (ulong)payload.Length;
 				publishedMessageCount++;
-				logger.Info("Message [{0}] - Published {1} bytes of data to MQTT broker ({2}). ", msgId, publishedBytesInSchedule.ToString(), topic);
+				logger.Info("Message [{0}] - Published {1} bytes of data to MQTT broker. Topic: {2}.", msgId, payload.Length, topic);
 			} catch (Exception ex) {
 				logger.Error("Error publishing MQTT message: {0}", ex.Message);
 			}
@@ -190,6 +181,16 @@ namespace PIDataReaderLib {
 		}
 
 		private void MqttClient_MqttMsgPublished(object sender, MqttMsgPublishedEventArgs e) {
+			if (e.IsPublished) {
+				publishedConfirmedMessageCount++;
+			} else {
+				logger.Error("Message having id {0} was not confirmed to be published", e.MessageId);
+			}
+			logger.Info("Message [{0}] - Publish complete. Metrics since startup: published = {1}, publish confirmed = {2}.", e.MessageId.ToString(), publishedMessageCount, publishedConfirmedMessageCount);
+		}
+
+		/*
+		private void MqttClient_MqttMsgPublished(object sender, MqttMsgPublishedEventArgs e) {
 			grandTotalSwatch.Stop();
 			double grandTotalTimeSec = grandTotalSwatch.Elapsed.TotalSeconds;
 
@@ -198,34 +199,19 @@ namespace PIDataReaderLib {
 			} else {
 				logger.Error("Message having id {0} was not confirmed to be published", e.MessageId);
 			}
-			
+
 			logger.Info("Message [{0}] - Publish complete. Metrics since startup: published = {1}, publish confirmed = {2}.", e.MessageId.ToString(), publishedMessageCount, publishedConfirmedMessageCount);
-			
+
 			double thrput = 0;
 			if (0 != grandTotalTimeSec) {
 				thrput = publishedBytesInSchedule / grandTotalTimeSec;
 			}
-			
-			if (null != MQTTWriter_PublishCompleted) {
-				MQTTPublishTerminatedEventArgs ea = new MQTTPublishTerminatedEventArgs(grandTotalTimeSec, thrput, e.MessageId);
-				MQTTWriter_PublishCompleted(ea);
-			}
+
+			base.raisePublishCompleted(grandTotalTimeSec, thrput, e.MessageId);
+
+			grandTotalSwatch.Start();
 		}
+		*/
 	}
 
-	public class MQTTPublishTerminatedEventArgs : EventArgs {
-		public MQTTPublishTerminatedEventArgs(double elapsedTimeSec, double throughput, ushort messageId) {
-			this.elapsedTimeSec = elapsedTimeSec;
-			this.throughput = throughput;
-			this.messageId = messageId;
-		}
-		public double elapsedTimeSec;
-		public double throughput;
-		public ushort messageId;
-	}
-
-	public class MQTTClientClosedEventArgs : EventArgs {
-		
-	}
-	
 }
