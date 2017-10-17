@@ -74,41 +74,53 @@ namespace PIDataReaderLib {
 			try { 
 				foreach (string tagInfo in tagListItems) {
 					string[] tagInfoArray = tagInfo.Split(timeValueSeparator);
+
+					if (tagInfoArray.Length < 2) {
+						logger.Error("Invalid measurement format detected for Tag {0}. Measurement string is {1}.", tag.name, tagInfo);
+						continue;
+					}
+
 					string dateStr = tagInfoArray[0];
-					string valueStr = tagInfoArray[1];
-					string statusString = "0";
-					try {
+					string valueStr = null;
+					string svalueStr = null;
+					string statusString = null;
+					
+					if (tagInfoArray[1].Contains('|')) {
+						string[] valueStrArray = tagInfoArray[1].Split('|');
+						valueStr = valueStrArray[0];
+						svalueStr = valueStrArray[1];
+						statusString = valueStrArray[2];
+					} else {
+						valueStr = tagInfoArray[1];
+						statusString = "0";
 						if (tag.getIsPhaseTag()) {
 							statusString = valueStr;
-							valueStr = "";
+							valueStr = null;
 						}
+
+						if (TypeUtil.Instance.isString(tag.valueType)) {
+							svalueStr = valueStr;
+							valueStr = null;
+						}
+					}
+
+					try {
+						
 						DateTime dt = DateTime.ParseExact(dateStr, inDateFormat, CultureInfo.InvariantCulture);
 						string hadoopDate = dt.ToString(outDateFormat);
 
 						lineBuilder = new StringBuilder();
-						if (tag.hasStringValues) {
-							//tag contains string values: serialize values in the corresponding "svalue" field in the csv
-							lineBuilder.AppendFormat("{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}",
-							 tag.name,              //0 tag
-							 csvSeparator,          //1
-							 hadoopDate,            //2 time
-							 null,					//3 value
-							 valueStr,              //4 svalue
-							 statusString,          //5 status
-							 null                   //6 flag
-							 );
-						} else {
-							//tag contains string values: serialize values in the corresponding "value" field in the csv
-							lineBuilder.AppendFormat("{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}",
+
+						lineBuilder.AppendFormat("{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}",
 							 tag.name,              //0 tag
 							 csvSeparator,          //1
 							 hadoopDate,            //2 time
 							 valueStr,              //3 value
-							 null,                  //4 svalue
+							 svalueStr,             //4 svalue
 							 statusString,          //5 status
 							 null                   //6 flag
 							 );
-						}
+
 						outFile.WriteLine(lineBuilder.ToString());
 						outFile.Flush();
 					} catch(Exception ex) {

@@ -45,7 +45,7 @@ namespace PIDataReaderLib {
 			return sb.ToString();
 		}
 
-		public PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath, bool readBatches, bool readUnitBatches, bool readSubBatches, bool readPhases) {
+		public PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath) {
 			throw new Exception("Do not use AF SDK to read batch information");
 		}
 		
@@ -110,28 +110,60 @@ namespace PIDataReaderLib {
 			List<Tag> tagList = new List<Tag>();
 			foreach (PIPoint pt in pointList) {
 				try {
-					StringBuilder sb = new StringBuilder();
 					AFValues afVals = pt.RecordedValues(timeRange, boundaryType, "", false);
-					foreach (AFValue afVal in afVals) {
-						sb.AppendFormat("{0}:{1},", afVal.Timestamp.LocalTime.ToString(dateFormat), afVal.Value.ToString());
-						lastReadRecordCount = lastReadRecordCount + 1;
-					}
-					if (sb.Length > 0) {
-						sb.Remove(sb.Length - 1, 1);
-					}
 					if (afVals.Count > 0) {
-						Tag tag = new Tag();
-						tag.name = pt.Name;
-						tag.setIsPhaseTag(phaseTags);
-						tag.hasStringValues = (afVals[0].Value.GetType() == typeof(string));
-						tag.tagvalues = sb.ToString();
+						Type afValType = afVals[0].Value.GetType();
+						Tag tag = setupTagFromAFVals(afVals, afValType, pt.Name, phaseTags);
 						tagList.Add(tag);
-					}
+					}					
 				} catch (Exception ex) {
 					throw new Exception("Unable to read values for tag " + pt.Name + ". Details: " + ex.Message);
 				}
 			}
 			return tagList;
+		}
+
+		private Tag setupTagFromAFVals(AFValues afVals, Type afValType, string name, bool isPhaseTag) {
+			Tag tag = new Tag();
+			tag.name = name;
+			tag.setIsPhaseTag(isPhaseTag);
+			tag.valueType = afValType;
+			StringBuilder sb = new StringBuilder();
+			foreach (AFValue afVal in afVals) {
+				serializeAFValue(sb, afVal, afValType);
+				lastReadRecordCount = lastReadRecordCount + 1;
+			}
+			if (sb.Length > 0) {
+				sb.Remove(sb.Length - 1, 1);
+			}
+			tag.tagvalues = sb.ToString();
+			return tag;
+		}
+
+		private void serializeAFValueAsTriple(StringBuilder sb, AFValue afVal, Type valType) {
+			AFValueStatus afvStatus = afVal.Status;
+
+			string tagValue = afVal.Value.ToString();
+			string tagSValue = "";
+			if (TypeUtil.Instance.isDecimal(valType)) {
+				tagValue = afVal.ValueAsDouble().ToString("F8");
+			} else if (TypeUtil.Instance.isInteger(valType)) {
+				tagValue = afVal.ValueAsInt32().ToString();
+			} else if (TypeUtil.Instance.isString(valType)) {
+				tagSValue = tagValue;
+				tagValue = "";
+			}
+			sb.AppendFormat("{0}:{1}|{2}|{3},", afVal.Timestamp.LocalTime.ToString(dateFormat), tagValue, tagSValue, (int)afvStatus);
+		}
+
+		private void serializeAFValue(StringBuilder sb, AFValue afVal, Type valType) {
+			string tagValue = afVal.Value.ToString();
+			if (TypeUtil.Instance.isDecimal(valType)) {
+				tagValue = afVal.ValueAsDouble().ToString("F8");
+			} else if (TypeUtil.Instance.isInteger(valType)) {
+				tagValue = afVal.ValueAsInt32().ToString();
+			}
+			sb.AppendFormat("{0}:{1},", afVal.Timestamp.LocalTime.ToString(dateFormat), tagValue);
 		}
 
 	}

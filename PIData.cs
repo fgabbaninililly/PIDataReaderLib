@@ -36,6 +36,13 @@ namespace PIDataReaderLib {
 		[XmlArrayItem("tag")]
 		public List<Tag> tags { get; set; }
 
+		[XmlIgnore]
+		public bool tagsSpecified {
+			get {
+				return (tags.Count > 0);
+			}
+		}
+
 		public PIData() {
 			batches = new List<Batch>();
 			tags = new List<Tag>();
@@ -206,28 +213,6 @@ namespace PIDataReaderLib {
 
 	}
 
-	/*
-	public class SubBatchItem {
-		[XmlAttribute("uid")]
-		public string uid;
-
-		[XmlAttribute("starttime")]
-		public string starttime;
-
-		[XmlAttribute("endtime")]
-		public string endtime;
-
-		[XmlAttribute("name")]
-		public string name;
-
-		[XmlAttribute("headinguid")]
-		public string headinguid;
-
-		[XmlAttribute("path")]
-		public string path;
-	}
-	*/
-
 	public class Tag {
 		[XmlAttribute("name")]
 		public string name;
@@ -239,7 +224,7 @@ namespace PIDataReaderLib {
 		public string isPhase;
 
 		[XmlIgnoreAttribute]
-		public bool hasStringValues;
+		public Type valueType;
 
 		public Tag() {
 			isPhase = "false";
@@ -271,7 +256,7 @@ namespace PIDataReaderLib {
 			if (null == tagvalues || 0 == tagvalues.Length) {
 				tagvalues += String.Format("{0}:{1}|{2}|{3}", dateTimeStr, valueStr, svalueStr, statusStr);
 			} else {
-				tagvalues += String.Format(",{0}:{1}", dateTimeStr, valueStr, svalueStr, statusStr);
+				tagvalues += String.Format(",{0}:{1}|{2}|{3}", dateTimeStr, valueStr, svalueStr, statusStr);
 			}
 		}
 	}

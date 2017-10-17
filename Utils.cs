@@ -37,6 +37,58 @@ namespace PIDataReaderLib {
 		}
 
 		public static Dictionary<string, string> getLastReadTimesByEquipmentFromLog() {
+			//search for latest read times both in the most recent log file AND in the most recent archive file
+			string logFileName = getLogFileFullPath();
+
+			Dictionary<string, string> lastReadTimesFromLog = getLastReadTimesByEquipment(logFileName);
+			
+			string folderName = Path.GetDirectoryName(logFileName);
+			DirectoryInfo info = new DirectoryInfo(folderName);
+			FileInfo[] files = info.GetFiles("*.log");
+
+			if (files.Length == 0) {
+				//no archive files...
+				return lastReadTimesFromLog;
+			}
+			
+			// Sort by creation-time descending 
+			Array.Sort(files, delegate (FileInfo f1, FileInfo f2)
+			{
+				return f1.CreationTime.CompareTo(f2.CreationTime);
+			});
+			
+
+			Dictionary<string, string> lastReadTimesFromArchive = getLastReadTimesByEquipment(files[0].FullName);
+			foreach (string equipment in lastReadTimesFromArchive.Keys) {
+				if (!lastReadTimesFromLog.ContainsKey(equipment)) {
+					lastReadTimesFromLog.Add(equipment, lastReadTimesFromArchive[equipment]);
+				}
+			}
+
+			return lastReadTimesFromLog;
+		}
+
+		private static Dictionary<string, string> getLastReadTimesByEquipment(string fileName) {
+			Dictionary<string, string> lastReadTimesByEquipment = new Dictionary<string, string>();
+			if (!File.Exists(fileName)) {
+				return lastReadTimesByEquipment;
+			}
+			StreamReader file = new StreamReader(fileName);
+			try {
+				string line;
+				while ((line = file.ReadLine()) != null) {
+					if (line.Contains(Utils.READEND_MARKER)) {
+						addReadEnd(line, lastReadTimesByEquipment);
+					}
+				}
+			} finally {
+				file.Close();
+			}
+			return lastReadTimesByEquipment;
+		}
+
+		/*
+		public static Dictionary<string, string> getLastReadTimesByEquipmentFromLogOld() {
 			string fileName = getLogFileFullPath();
 			Dictionary<string, string> lastReadTimesByEquipment = new Dictionary<string, string>();
 			if (!File.Exists(fileName)) {
@@ -56,6 +108,7 @@ namespace PIDataReaderLib {
 			}
 			return lastReadTimesByEquipment;
 		}
+		*/
 
 		public static void redirectLogFile(string newPath) {
 
@@ -124,6 +177,63 @@ namespace PIDataReaderLib {
 			sb.Remove(sb.Length - 1, 1);
 
 			return sb.ToString();
+		}
+	}
+	public sealed class TypeUtil {
+		private static volatile TypeUtil instance;
+		private static object syncRoot = new Object();
+		private static HashSet<TypeCode> integerCodes;
+		private static HashSet<TypeCode> decimalCodes;
+		private static HashSet<TypeCode> stringCodes;
+
+		private TypeUtil() {
+			TypeCode[] num = {
+				TypeCode.Byte,
+				TypeCode.Int16,
+				TypeCode.Int32,
+				TypeCode.Int64,
+				TypeCode.SByte,
+				TypeCode.UInt16,
+				TypeCode.UInt32,
+				TypeCode.UInt64 };
+
+			TypeCode[] flt = {
+				TypeCode.Decimal,
+				TypeCode.Double,
+				TypeCode.Single
+			};
+
+			TypeCode[] str = {
+				TypeCode.String
+			};
+
+			integerCodes = new HashSet<TypeCode>(num);
+			decimalCodes = new HashSet<TypeCode>(flt);
+			stringCodes = new HashSet<TypeCode>(str);
+		}
+
+		public static TypeUtil Instance {
+			get {
+				if (instance == null) {
+					lock (syncRoot) {
+						if (instance == null)
+							instance = new TypeUtil();
+					}
+				}
+				return instance;
+			}
+		}
+
+		public bool isInteger(Type t) {
+			return integerCodes.Contains(Type.GetTypeCode(t));
+		}
+
+		public bool isDecimal(Type t) {
+			return decimalCodes.Contains(Type.GetTypeCode(t));
+		}
+
+		public bool isString(Type t) {
+			return stringCodes.Contains(Type.GetTypeCode(t));
 		}
 	}
 }

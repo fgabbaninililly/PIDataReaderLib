@@ -16,20 +16,12 @@ namespace PIDataReaderLib {
 		PISDK.Server piServer;
 		long lastReadRecordCount;
 
-		//DateTime readFinishedTimestamp;
-
 		public PISDKReader(string piServerName, string outDateFormat, string dateFormatPI) {
 			this.dateFormat = outDateFormat;
 			this.dateFormatPI = dateFormatPI;
 			this.piSDK = new PISDK.PISDK();
 			this.piServer = this.piSDK.Servers[piServerName];
 		}
-
-		/*
-		public DateTime getReadFinishedTime() {
-			return readFinishedTimestamp;
-		}
-		*/
 
 		public long GetLastReadRecordCount() {
 			return lastReadRecordCount;
@@ -65,24 +57,9 @@ namespace PIDataReaderLib {
 					piPoint = piServer.PIPoints[tagName];
 					PIValues lValues = piPoint.Data.RecordedValues(startTime, endTime);
 					if (lValues.Count > 0) {
-						Tag outTag = new Tag();
-						outTag.name = piPoint.Name;
-						outTag.setIsPhaseTag(phaseTags);
-						outTag.hasStringValues = (lValues[1].Value.GetType() == typeof(string));
-						StringBuilder tagValues = new StringBuilder();
-						//PIValue collection index is 1-based!!!
-						for (int i = 1; i <= lValues.Count; i++) {
-							PIValue piValue = lValues[i];
-							string tVal = piValue.Value.ToString();
-							if (phaseTags) {
-								tVal = piValue.Value.Name.ToString();
-							}
-							tagValues.AppendFormat("{0}:{1},", piValue.TimeStamp.LocalDate.ToString(dateFormat), tVal);
-							lastReadRecordCount = lastReadRecordCount + 1;
-						}
-						tagValues.Remove(tagValues.Length - 1, 1);
-						outTag.tagvalues = tagValues.ToString();
-						tagList.Add(outTag);
+						Type valType = lValues[1].Value.GetType();
+						Tag tag = setupTagFromLValues(lValues, valType, piPoint.Name, phaseTags);
+						tagList.Add(tag);
 					}
 				} catch (Exception ex) {
 					throw new Exception("Unable to read values for tag " + tagName + ". Details: " + ex.Message);
@@ -90,7 +67,49 @@ namespace PIDataReaderLib {
 			}
 			return tagList;
 		}
-		
+
+		private Tag setupTagFromLValues(PIValues lVals, Type valType, string name, bool isPhaseTag) {
+			Tag tag = new Tag();
+			tag.name = name;
+			tag.setIsPhaseTag(isPhaseTag);
+			tag.valueType = valType;
+			StringBuilder sb = new StringBuilder();
+			for (int i = 1; i <= lVals.Count; i++) {
+				PIValue piValue = lVals[i];
+				serializeLValue(sb, piValue, valType, isPhaseTag);
+				lastReadRecordCount = lastReadRecordCount + 1;
+			}
+			if (sb.Length > 0) {
+				sb.Remove(sb.Length - 1, 1);
+			}
+			tag.tagvalues = sb.ToString();
+			return tag;
+		}
+
+		private void serializeLValueAsTriple(StringBuilder sb, PIValue piValue, Type valType, bool isPhaseTag) {
+			int vStatus = 0;
+			string tagValue = piValue.Value.ToString();
+			string tagSValue = "";
+			if (TypeUtil.Instance.isDecimal(valType)) {
+				tagValue = ((double)piValue.Value).ToString("F8");
+			} else if (TypeUtil.Instance.isString(valType)) {
+				tagSValue = tagValue;
+				tagValue = "";
+			}
+			sb.AppendFormat("{0}:{1}|{2}|{3},", piValue.TimeStamp.LocalDate.ToString(dateFormat), tagValue, tagSValue, vStatus);
+		}
+
+		private void serializeLValue(StringBuilder sb, PIValue piValue, Type valType, bool isPhaseTag) {
+			string tagValue = piValue.Value.ToString();
+			if (TypeUtil.Instance.isDecimal(valType)) {
+				tagValue = ((double)piValue.Value).ToString("F8");
+			}
+			if (isPhaseTag) {
+				tagValue = piValue.Value.Name.ToString();
+			}
+			sb.AppendFormat("{0}:{1},", piValue.TimeStamp.LocalDate.ToString(dateFormat), tagValue);
+		}
+
 		public PIModule getModuleFromPath(string modulePath) {
 			return PIModuleIdentifier.getModuleFromPath(modulePath, piServer);
 		}
@@ -102,7 +121,7 @@ namespace PIDataReaderLib {
 		 * Any unit batch which has an end time on or after the search start and a start time on or 
 		 * before search end matches the search time criteria.
 		 */
-		public PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath, bool readBatches, bool readUnitBatches, bool readSubBatches, bool readPhases) {
+		public PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath) {
 			PIModule piModule = getModuleFromPath(modulePath);
 
 			PITime piTimeStart = new PITime();
@@ -140,7 +159,6 @@ namespace PIDataReaderLib {
 				}
 				batch.unitBatches.Add(unitBatch);
 			}
-			//readFinishedTimestamp = DateTime.Now;
 			pidata.readIntervalStart = startTime.ToString(dateFormat);
 			pidata.readIntervalEnd = endTime.ToString(dateFormat);
 			pidata.readFinished = endTime.ToString(dateFormat);

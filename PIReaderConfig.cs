@@ -283,6 +283,7 @@ namespace PIDataReaderLib {
 		public const string PARAMNAME_PISDKTYPE = "pisdktype";
 		public const string PARAMNAME_PIBOUNDARY = "piboundarytype";
 
+		public const string PARAMNAME_MQTTCLIENTTYPE = "mqttclienttype";
 		public const string PARAMNAME_MQTTBROKERADDRESS = "mqttbrokeraddress";
 		public const string PARAMNAME_MQTTBROKERPORT = "mqttbrokerport";
 		public const string PARAMNAME_MQTTCLIENTNAME = "mqttclientname";
@@ -292,6 +293,9 @@ namespace PIDataReaderLib {
 
 		public const string PARAMNAME_MQTTOUT_TOPIC = "topic";
 		public const string PARAMNAME_MQTTOUT_CLIENTID = "clientid";
+
+		public const string PARAM_VALUE_MQTTCLIENTTYPE_MQTTNET = "MQTTnet";
+		public const string PARAM_VALUE_MQTTCLIENTTYPE_M2MQTT = "M2Mqtt";
 
 		public const string PARAM_VALUE_SDK_AF = "afsdk";
 		public const string PARAM_VALUE_SDK_PI = "pisdk";
@@ -340,18 +344,6 @@ namespace PIDataReaderLib {
 
 	public class BatchCfg {
 		
-		[XmlAttribute("usebatch")]
-		public string useBatch;
-
-		[XmlAttribute("useunitbatch")]
-		public string useUnitBatch;
-
-		[XmlAttribute("usesubbatch")]
-		public string useSubBatch;
-
-		[XmlAttribute("usephase")]
-		public string usePhase;
-		
 		[XmlAttribute("modulepath")]
 		public string modulePath;
 
@@ -361,30 +353,6 @@ namespace PIDataReaderLib {
 		[XmlAttribute("mqtttopic")]
 		public string mqttTopic;
 
-		public bool useUnitBatchBool() {
-			if (useUnitBatch.ToLower().Equals("false") || useUnitBatch.ToLower().Equals("no")) {
-				return false;
-			}
-			return true;
-		}
-		public bool useBatchBool() {
-			if (useBatch.ToLower().Equals("false") || useBatch.ToLower().Equals("no")) {
-				return false;
-			}
-			return true;
-		}
-		public bool useSubBatchBool() {
-			if (useSubBatch.ToLower().Equals("false") || useSubBatch.ToLower().Equals("no")) {
-				return false;
-			}
-			return true;
-		}
-		public bool usePhaseBool() {
-			if (usePhase.ToLower().Equals("false") || usePhase.ToLower().Equals("no")) {
-				return false;
-			}
-			return true;
-		}
 	}
 
 	public class EquipmentCfg {

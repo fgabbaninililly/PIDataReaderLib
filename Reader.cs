@@ -129,7 +129,7 @@ namespace PIDataReaderLib {
 					ReadInterval rInterval = readIntervalsByEquipment[batchCfg.moduleName];
 					logger.Info("Reading module {0}. Interval [{1}, {2}]", batchCfg.moduleName, rInterval.start.ToString(config.dateFormats.reference), rInterval.end.ToString(config.dateFormats.reference));
 					Stopwatch swatch = Stopwatch.StartNew();
-					PIData piData = piReader.ReadBatchTree(rInterval.start, rInterval.end, batchCfg.modulePath, batchCfg.useBatchBool(), batchCfg.useUnitBatchBool(), batchCfg.useSubBatchBool(), batchCfg.usePhaseBool());
+					PIData piData = piReader.ReadBatchTree(rInterval.start, rInterval.end, batchCfg.modulePath);
 					swatch.Stop();
 					readTimesMap.Add(batchCfg.moduleName, swatch.Elapsed.TotalSeconds);
 					logger.Info("Finished reading module");
