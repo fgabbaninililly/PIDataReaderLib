@@ -37,6 +37,58 @@ namespace PIDataReaderLib {
 		}
 
 		public static Dictionary<string, string> getLastReadTimesByEquipmentFromLog() {
+			//search for latest read times both in the most recent log file AND in the most recent archive file
+			string logFileName = getLogFileFullPath();
+
+			Dictionary<string, string> lastReadTimesFromLog = getLastReadTimesByEquipment(logFileName);
+			
+			string folderName = Path.GetDirectoryName(logFileName);
+			DirectoryInfo info = new DirectoryInfo(folderName);
+			FileInfo[] files = info.GetFiles("*.log");
+
+			if (files.Length == 0) {
+				//no archive files...
+				return lastReadTimesFromLog;
+			}
+			
+			// Sort by creation-time descending 
+			Array.Sort(files, delegate (FileInfo f1, FileInfo f2)
+			{
+				return f1.CreationTime.CompareTo(f2.CreationTime);
+			});
+			
+
+			Dictionary<string, string> lastReadTimesFromArchive = getLastReadTimesByEquipment(files[0].FullName);
+			foreach (string equipment in lastReadTimesFromArchive.Keys) {
+				if (!lastReadTimesFromLog.ContainsKey(equipment)) {
+					lastReadTimesFromLog.Add(equipment, lastReadTimesFromArchive[equipment]);
+				}
+			}
+
+			return lastReadTimesFromLog;
+		}
+
+		private static Dictionary<string, string> getLastReadTimesByEquipment(string fileName) {
+			Dictionary<string, string> lastReadTimesByEquipment = new Dictionary<string, string>();
+			if (!File.Exists(fileName)) {
+				return lastReadTimesByEquipment;
+			}
+			StreamReader file = new StreamReader(fileName);
+			try {
+				string line;
+				while ((line = file.ReadLine()) != null) {
+					if (line.Contains(Utils.READEND_MARKER)) {
+						addReadEnd(line, lastReadTimesByEquipment);
+					}
+				}
+			} finally {
+				file.Close();
+			}
+			return lastReadTimesByEquipment;
+		}
+
+		/*
+		public static Dictionary<string, string> getLastReadTimesByEquipmentFromLogOld() {
 			string fileName = getLogFileFullPath();
 			Dictionary<string, string> lastReadTimesByEquipment = new Dictionary<string, string>();
 			if (!File.Exists(fileName)) {
@@ -56,6 +108,7 @@ namespace PIDataReaderLib {
 			}
 			return lastReadTimesByEquipment;
 		}
+		*/
 
 		public static void redirectLogFile(string newPath) {
 
