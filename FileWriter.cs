@@ -30,7 +30,8 @@ namespace PIDataReaderLib {
 					string destFolder = String.Format(@"{0}\Out\Tags\", outFolder);
 					createFolder(destFolder);
 					string destFile = String.Format(@"{0}\{1}.tag.txt", destFolder, equipmentName);
-					tagSerializer.serializeTagsToLocalFile(piData.tags, destFile, append);
+					tagSerializer.createFileWithHeader(destFile, append);
+					tagSerializer.serializeTagsToLocalFile(piData.tags, destFile);
 				} catch (Exception e) {
 					logger.Error(e.ToString());
 				}
