@@ -437,10 +437,10 @@ namespace PIDataReaderLib {
 		[XmlAttribute("unit")]
 		public string unit;
 
-		private long getSliceDuration() {
-			long sd = 0;
+		private int getSliceDuration() {
+			int sd = 0;
 			try { 
-				sd = Int64.Parse(slice);
+				sd = int.Parse(slice);
 			} catch(Exception) {}
 			return sd;
 		}
@@ -449,8 +449,8 @@ namespace PIDataReaderLib {
 			return getSliceDuration() != 0;
 		}
 
-		public long getSliceDurationSec() {
-			double multiplier = 1.0;
+		public UInt64 getSliceDurationMillisecSec() {
+			int multiplier = 1;
 			if (TimeUnit.UNIT_MINUTES.Equals(unit.ToLower())) {
 				multiplier = TimeMultipliers.SECONDS_IN_MINUTE;
 			}
@@ -460,8 +460,8 @@ namespace PIDataReaderLib {
 			if (TimeUnit.UNIT_DAYS.Equals(unit.ToLower())) {
 				multiplier = TimeMultipliers.SECONDS_IN_DAY;
 			}
-						
-			return (long)(multiplier * getSliceDuration());
+			UInt64 sliceDurationSec = (UInt64)(multiplier * getSliceDuration());
+			return sliceDurationSec * 1000;
 		}
 	}
 
