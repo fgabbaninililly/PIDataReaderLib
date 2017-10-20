@@ -11,7 +11,7 @@ namespace PIDataReaderLib {
 		private PIReaderInterface piReader;
 		private string outDateFormat;
 		private string piDateFormat;
-		//private Dictionary<string, DateTime> startTimesByEquipment;
+		
 		private string piServerName;
 		private string piSdkType;
 		private string boundary = Parameter.PARAM_VALUE_BOUNDARY_INSIDE;
@@ -90,54 +90,44 @@ namespace PIDataReaderLib {
 			logger.Info("Executed dummy read to improve performance of next read");
 		}
 
-		public Dictionary<string, PIData> readTags(PIReaderConfig config, Dictionary<string, ReadInterval> readIntervalsByEquipment) {
-			logger.Info(">>Start reading data");
+		public Dictionary<string, PIData> readTags(EquipmentCfg equipmentCfg, ReadInterval readInterval) {
 			Dictionary<string, PIData> piDataMap = new Dictionary<string, PIData>();
 			Dictionary<string, double> readTimesMap = new Dictionary<string, double>();
-			List<EquipmentCfg> equipments = config.read.equipments;
-			foreach (EquipmentCfg equipment in equipments) {
-				try {
-					ReadInterval rInterval = readIntervalsByEquipment[equipment.name];
-					logger.Info("Reading equipment '{0}'. Interval [{1}, {2}]", equipment.name, rInterval.start.ToString(config.dateFormats.reference), rInterval.end.ToString(config.dateFormats.reference));
-					Stopwatch swatch = Stopwatch.StartNew();
-					PIData piData = piReader.Read(equipment.tagList.tags, equipment.phaseList.phases, rInterval.start, rInterval.end);
-					swatch.Stop();
-					readTimesMap.Add(equipment.name, swatch.Elapsed.TotalSeconds);
-					logger.Info("Finished reading equipment. Total tags: {0}. Total records: {1}. Time required: {2}s", piData.tags.Count, piReader.GetLastReadRecordCount(), swatch.Elapsed.TotalSeconds);
-					piDataMap.Add(equipment.name, piData);
-				} catch (Exception e) {
-					logger.Error("Error reading tags. Details: {0}", e.ToString());
-				}
+			try {
+				logger.Info(">>Reading equipment '{0}'. Interval [{1}, {2}]", equipmentCfg.name, readInterval.start.ToString(outDateFormat), readInterval.end.ToString(outDateFormat));
+				Stopwatch swatch = Stopwatch.StartNew();
+				PIData piData = piReader.Read(equipmentCfg.tagList.tags, equipmentCfg.phaseList.phases, readInterval.start, readInterval.end);
+				swatch.Stop();
+				readTimesMap.Add(equipmentCfg.name, swatch.Elapsed.TotalSeconds);
+				logger.Info("Finished reading equipment. Total tags: {0}. Total records: {1}. Time required: {2}s", piData.tags.Count, piReader.GetLastReadRecordCount(), swatch.Elapsed.TotalSeconds);
+				piDataMap.Add(equipmentCfg.name, piData);
+			} catch (Exception e) {
+				logger.Error("Error reading tags. Details: {0}", e.ToString());
 			}
+			
 			logger.Info(">>Finished reading data");
 			if (null != Reader_PIReadTerminated) {
 				PIReadTerminatedEventArgs ea = new PIReadTerminatedEventArgs(readTimesMap);
 				Reader_PIReadTerminated(ea);
 			}
-
 			return piDataMap;
 		}
-		
-		public Dictionary<string, PIData> readBatches( PIReaderConfig config, Dictionary<string, ReadInterval> readIntervalsByEquipment) {
 
-			logger.Info(">>Start reading data");
-
+		public Dictionary<string, PIData> readBatches(BatchCfg batchCfg, ReadInterval readInterval) {
 			Dictionary<string, PIData> piDataMap = new Dictionary<string, PIData>();
 			Dictionary<string, double> readTimesMap = new Dictionary<string, double>();
-			foreach (BatchCfg batchCfg in config.read.batches) {
-				try {
-					ReadInterval rInterval = readIntervalsByEquipment[batchCfg.moduleName];
-					logger.Info("Reading module {0}. Interval [{1}, {2}]", batchCfg.moduleName, rInterval.start.ToString(config.dateFormats.reference), rInterval.end.ToString(config.dateFormats.reference));
-					Stopwatch swatch = Stopwatch.StartNew();
-					PIData piData = piReader.ReadBatchTree(rInterval.start, rInterval.end, batchCfg.modulePath);
-					swatch.Stop();
-					readTimesMap.Add(batchCfg.moduleName, swatch.Elapsed.TotalSeconds);
-					logger.Info("Finished reading module");
-					piDataMap.Add(batchCfg.moduleName, piData);
-				} catch (Exception e) {
-					logger.Error("Error reading batch/unit batch/sub batch. Details: {0}", e.ToString());
-				}
+			try {
+				logger.Info(">>Reading module '{0}'. Interval [{1}, {2}]", batchCfg.moduleName, readInterval.start.ToString(outDateFormat), readInterval.end.ToString(outDateFormat));
+				Stopwatch swatch = Stopwatch.StartNew();
+				PIData piData = piReader.ReadBatchTree(readInterval.start, readInterval.end, batchCfg.modulePath);
+				swatch.Stop();
+				readTimesMap.Add(batchCfg.moduleName, swatch.Elapsed.TotalSeconds);
+				logger.Info("Finished reading module");
+				piDataMap.Add(batchCfg.moduleName, piData);
+			} catch (Exception e) {
+				logger.Error("Error reading batch/unit batch/sub batch. Details: {0}", e.ToString());
 			}
+			
 			logger.Info(">>Finished reading data");
 			if (null != Reader_PIReadTerminated) {
 				PIReadTerminatedEventArgs ea = new PIReadTerminatedEventArgs(readTimesMap);
