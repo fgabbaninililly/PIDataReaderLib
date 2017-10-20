@@ -14,9 +14,15 @@ namespace PIDataReaderLib {
 		public DateTime start { get; set; }
 		public DateTime end { get; set; }
 
+		private const string format = "yyyy-MM-ddTHH-mm-ss.fff";
+
 		public ReadInterval(DateTime start, DateTime end) {
 			this.start = start;
 			this.end = end;
+		}
+
+		public override string ToString() {
+			return String.Format("[{0}, {1}]", start.ToString(format), end.ToString(format));
 		}
 	}
 	public class Utils {
