@@ -22,38 +22,49 @@ namespace PIDataReaderLib {
 				System.IO.Directory.CreateDirectory(pathToFolder);
 		}
 
+		public void writeTags(PIData piData, string equipmentName, bool append) {
+			TagSerializer tagSerializer = new TagSerializer(inDateFormat, outDateFormat);
+			
+			try {
+				string destFolder = String.Format(@"{0}\Out\Tags\", outFolder);
+				createFolder(destFolder);
+				string destFile = String.Format(@"{0}\{1}.tag.txt", destFolder, equipmentName);
+				tagSerializer.createFileWithHeader(destFile, append);
+				tagSerializer.serializeTagsToLocalFile(piData.tags, destFile);
+			} catch (Exception e) {
+				logger.Error(e.ToString());
+			}
+			
+		}
+		[System.Obsolete]
 		public void writeTags(Dictionary<string, PIData> piDataMap, bool append) {
 			TagSerializer tagSerializer = new TagSerializer(inDateFormat, outDateFormat);
 			foreach (string equipmentName in piDataMap.Keys) {
-				try { 
-					PIData piData = piDataMap[equipmentName];
-					string destFolder = String.Format(@"{0}\Out\Tags\", outFolder);
-					createFolder(destFolder);
-					string destFile = String.Format(@"{0}\{1}.tag.txt", destFolder, equipmentName);
-					tagSerializer.createFileWithHeader(destFile, append);
-					tagSerializer.serializeTagsToLocalFile(piData.tags, destFile);
-				} catch (Exception e) {
-					logger.Error(e.ToString());
-				}
+				PIData piData = piDataMap[equipmentName];
+				writeTags(piData, equipmentName, append);
 			}
 		}
 
+		public void writeBatches(PIData piData, string moduleName, bool append) {
+			try {
+				string destFolder = String.Format(@"{0}\Out\Batches\", outFolder);
+				createFolder(destFolder);
+				string destFileBatch = String.Format(@"{0}\{1}.batch.txt", destFolder, moduleName);
+				string destFileUBatch = String.Format(@"{0}\{1}.ubatch.txt", destFolder, moduleName);
+				string destFileSBatch = String.Format(@"{0}\{1}.sbatch.txt", destFolder, moduleName);
+				BatchSerializer batchSerializer = new BatchSerializer(destFileBatch, destFileUBatch, destFileSBatch, inDateFormat, outDateFormat);
+				bool b = batchSerializer.createFiles(append);
+				batchSerializer.serializeBatchesToLocalFile(piData.batches);
+				batchSerializer.closeFiles();
+			} catch (Exception e) {
+				logger.Error(e.ToString());
+			}
+		}
+		[System.Obsolete]
 		public void writeBatches(Dictionary<string, PIData> piDataMap, bool append) {
 			foreach (string moduleName in piDataMap.Keys) {
-				try { 
-					PIData piData = piDataMap[moduleName];
-					string destFolder = String.Format(@"{0}\Out\Batches\", outFolder);
-					createFolder(destFolder);
-					string destFileBatch = String.Format(@"{0}\{1}.batch.txt", destFolder, moduleName);
-					string destFileUBatch = String.Format(@"{0}\{1}.ubatch.txt", destFolder, moduleName);
-					string destFileSBatch = String.Format(@"{0}\{1}.sbatch.txt", destFolder, moduleName);
-					BatchSerializer batchSerializer = new BatchSerializer(destFileBatch, destFileUBatch, destFileSBatch, inDateFormat, outDateFormat);
-					bool b = batchSerializer.createFiles(append);
-					batchSerializer.serializeBatchesToLocalFile(piData.batches);
-					batchSerializer.closeFiles();
-				} catch (Exception e) {
-					logger.Error(e.ToString());
-				}
+				PIData piData = piDataMap[moduleName];
+				writeBatches(piData, moduleName, append);
 			}
 		}
 	}
