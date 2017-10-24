@@ -90,52 +90,41 @@ namespace PIDataReaderLib {
 			logger.Info("Executed dummy read to improve performance of next read");
 		}
 
-		public Dictionary<string, PIData> readTags(EquipmentCfg equipmentCfg, ReadInterval readInterval) {
-			Dictionary<string, PIData> piDataMap = new Dictionary<string, PIData>();
-			Dictionary<string, double> readTimesMap = new Dictionary<string, double>();
+		public PIData readTags(EquipmentCfg equipmentCfg, ReadInterval readInterval) {
+			PIData piData = null;
 			try {
-				logger.Info(">>Reading equipment '{0}'. Interval [{1}, {2}]", equipmentCfg.name, readInterval.start.ToString(outDateFormat), readInterval.end.ToString(outDateFormat));
+				logger.Info("Reading '{0}'", equipmentCfg.name);
 				Stopwatch swatch = Stopwatch.StartNew();
-				PIData piData = piReader.Read(equipmentCfg.tagList.tags, equipmentCfg.phaseList.phases, readInterval.start, readInterval.end);
+				piData = piReader.Read(equipmentCfg.tagList.tags, equipmentCfg.phaseList.phases, readInterval.start, readInterval.end);
 				swatch.Stop();
-				readTimesMap.Add(equipmentCfg.name, swatch.Elapsed.TotalSeconds);
-				logger.Info("Finished reading equipment. Total tags: {0}. Total records: {1}. Time required: {2}s", piData.tags.Count, piReader.GetLastReadRecordCount(), swatch.Elapsed.TotalSeconds);
-				piDataMap.Add(equipmentCfg.name, piData);
+				logger.Info("Finished reading {0} tags", piData.tags.Count);
+				if (null != Reader_PIReadTerminated) {
+					PIReadTerminatedEventArgs ea = new PIReadTerminatedEventArgs(piReader.GetLastReadRecordCount(), swatch.Elapsed.TotalSeconds);
+					Reader_PIReadTerminated(ea);
+				}
 			} catch (Exception e) {
 				logger.Error("Error reading tags. Details: {0}", e.ToString());
 			}
-			
-			logger.Info(">>Finished reading data");
-			if (null != Reader_PIReadTerminated) {
-				PIReadTerminatedEventArgs ea = new PIReadTerminatedEventArgs(readTimesMap);
-				Reader_PIReadTerminated(ea);
-			}
-			return piDataMap;
+			return piData;
 		}
 
-		public Dictionary<string, PIData> readBatches(BatchCfg batchCfg, ReadInterval readInterval) {
-			Dictionary<string, PIData> piDataMap = new Dictionary<string, PIData>();
-			Dictionary<string, double> readTimesMap = new Dictionary<string, double>();
+		public PIData readBatches(BatchCfg batchCfg, ReadInterval readInterval) {
+			PIData piData = null;
 			try {
-				logger.Info(">>Reading module '{0}'. Interval [{1}, {2}]", batchCfg.moduleName, readInterval.start.ToString(outDateFormat), readInterval.end.ToString(outDateFormat));
 				Stopwatch swatch = Stopwatch.StartNew();
-				PIData piData = piReader.ReadBatchTree(readInterval.start, readInterval.end, batchCfg.modulePath);
+				piData = piReader.ReadBatchTree(readInterval.start, readInterval.end, batchCfg.modulePath);
 				swatch.Stop();
-				readTimesMap.Add(batchCfg.moduleName, swatch.Elapsed.TotalSeconds);
-				logger.Info("Finished reading module");
-				piDataMap.Add(batchCfg.moduleName, piData);
+				if (null != Reader_PIReadTerminated) {
+					PIReadTerminatedEventArgs ea = new PIReadTerminatedEventArgs(piReader.GetLastReadRecordCount(), swatch.Elapsed.TotalSeconds);
+					Reader_PIReadTerminated(ea);
+				}
 			} catch (Exception e) {
 				logger.Error("Error reading batch/unit batch/sub batch. Details: {0}", e.ToString());
 			}
-			
-			logger.Info(">>Finished reading data");
-			if (null != Reader_PIReadTerminated) {
-				PIReadTerminatedEventArgs ea = new PIReadTerminatedEventArgs(readTimesMap);
-				Reader_PIReadTerminated(ea);
-			}
-			return piDataMap;
+						
+			return piData;
 		}
-		
+
 		private DateTime getStartTime(string equipmentName, Dictionary<string, DateTime> startTimesByEquipment, DateTime startTime, string readExtentType) {
 			if (!ReadExtent.READ_EXTENT_FREQUENCY.Equals(readExtentType.ToLower())) {
 				return startTime;
@@ -153,9 +142,11 @@ namespace PIDataReaderLib {
 	}
 
 	public class PIReadTerminatedEventArgs {
-		public PIReadTerminatedEventArgs(Dictionary<string, double> readTimesMap) {
-			this.readTimesByEquipment = readTimesMap;
+		public PIReadTerminatedEventArgs(uint recordCount, double elapsedTime) {
+			this.recordCount = recordCount;
+			this.elapsedTime = elapsedTime;
 		}
-		public Dictionary<string, double> readTimesByEquipment;
+		public ulong recordCount;
+		public double elapsedTime;
 	}
 }
