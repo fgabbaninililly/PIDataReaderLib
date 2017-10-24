@@ -49,6 +49,10 @@ namespace PIDataReaderLib {
 			Dictionary<string, string> lastReadTimesFromLog = getLastReadTimesByEquipment(logFileName);
 			
 			string folderName = Path.GetDirectoryName(logFileName);
+			if (!Directory.Exists(folderName)) {
+				return lastReadTimesFromLog;
+			}
+			
 			DirectoryInfo info = new DirectoryInfo(folderName);
 			FileInfo[] files = info.GetFiles("*.log");
 
