@@ -8,16 +8,43 @@ using System.Threading.Tasks;
 namespace PIDataReaderLib {
 	class EntityBuilder {
 		string dateFormat;
+		uint recordCount;
 
 		public EntityBuilder(string dateFormat) {
 			this.dateFormat = dateFormat;
 		}
 
 		public UnitBatch buildUnitBatch(PIUnitBatch piUnitBatch, string moduleUid) {
+			recordCount = 0;
 			UnitBatch unitBatch = buildUnitBatch(piUnitBatch);
 			unitBatch.moduleuid = moduleUid;
 			unitBatch.subBatches = buildSubBatches(piUnitBatch);
 			return unitBatch;
+		}
+
+		public uint getRecordCount() {
+			return recordCount;
+		}
+
+		public Batch buildBatch(PIBatch piBatch) {
+			
+			Batch batch = new Batch();
+
+			batch.batchid = piBatch.BatchID;
+			batch.starttime = piBatch.StartTime.LocalDate.ToString(dateFormat);
+			if (null != piBatch.EndTime) {
+				//end time may be not available
+				batch.endtime = piBatch.EndTime.LocalDate.ToString(dateFormat);
+			} else {
+				batch.endtime = "";
+			}
+			batch.product = piBatch.Product;
+			batch.recipe = piBatch.Recipe;
+			batch.uid = piBatch.UniqueID;
+
+			recordCount = 1;
+
+			return batch;
 		}
 
 		private UnitBatch buildUnitBatch(PIUnitBatch piUnitBatch) {
@@ -35,25 +62,9 @@ namespace PIDataReaderLib {
 			unitBatch.product = piUnitBatch.Product;
 			unitBatch.uid = piUnitBatch.UniqueID;
 
+			recordCount++;
+
 			return unitBatch;
-		}
-
-		public Batch buildBatch(PIBatch piBatch) {
-			Batch batch = new Batch();
-
-			batch.batchid = piBatch.BatchID;
-			batch.starttime = piBatch.StartTime.LocalDate.ToString(dateFormat);
-			if (null != piBatch.EndTime) {
-				//end time may be not available
-				batch.endtime = piBatch.EndTime.LocalDate.ToString(dateFormat);
-			} else {
-				batch.endtime = "";
-			}
-			batch.product = piBatch.Product;
-			batch.recipe = piBatch.Recipe;
-			batch.uid = piBatch.UniqueID;
-
-			return batch;
 		}
 
 		private List<SubBatch> buildSubBatches(PIUnitBatch piUnitBatch) {
@@ -87,6 +98,8 @@ namespace PIDataReaderLib {
 				subBatch.headinguid = piSubBatch.PIHeading.UniqueID;
 			}
 			subBatch.uid = piSubBatch.UniqueID;
+
+			recordCount++;
 
 			return subBatch;
 		}
