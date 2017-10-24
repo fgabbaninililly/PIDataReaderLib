@@ -14,7 +14,7 @@ namespace PIDataReaderLib {
 		string dateFormatPI;
 		PISDK.PISDK piSDK;
 		PISDK.Server piServer;
-		long lastReadRecordCount;
+		uint lastReadRecordCount;
 
 		public PISDKReader(string piServerName, string outDateFormat, string dateFormatPI) {
 			this.dateFormat = outDateFormat;
@@ -23,11 +23,12 @@ namespace PIDataReaderLib {
 			this.piServer = this.piSDK.Servers[piServerName];
 		}
 
-		public long GetLastReadRecordCount() {
+		public uint GetLastReadRecordCount() {
 			return lastReadRecordCount;
 		}
 
 		public PIData Read(string tagListCsvString, string phaseTagListCsvString, DateTime startTime, DateTime endTime) {
+			lastReadRecordCount = 0;
 			SortedSet<string> tagNameList = new SortedSet<string>();
 			if (null != tagListCsvString && tagListCsvString.Length > 0) {
 				tagNameList = new SortedSet<string>(tagListCsvString.Split(','));
@@ -77,7 +78,7 @@ namespace PIDataReaderLib {
 			for (int i = 1; i <= lVals.Count; i++) {
 				PIValue piValue = lVals[i];
 				serializeLValue(sb, piValue, valType, isPhaseTag);
-				lastReadRecordCount = lastReadRecordCount + 1;
+				lastReadRecordCount++;
 			}
 			if (sb.Length > 0) {
 				sb.Remove(sb.Length - 1, 1);
@@ -122,7 +123,10 @@ namespace PIDataReaderLib {
 		 * before search end matches the search time criteria.
 		 */
 		public PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath) {
+			lastReadRecordCount = 0;
+
 			PIModule piModule = getModuleFromPath(modulePath);
+			lastReadRecordCount++;
 
 			PITime piTimeStart = new PITime();
 			piTimeStart.LocalDate = startTime;
@@ -141,7 +145,8 @@ namespace PIDataReaderLib {
 			EntityBuilder eb = new EntityBuilder(dateFormat);
 			foreach (PIUnitBatch piUnitBatch in piUnitBatchList) {
 				UnitBatch unitBatch = eb.buildUnitBatch(piUnitBatch, piModule.UniqueID);
-				
+				lastReadRecordCount += eb.getRecordCount();
+
 				Batch batch = null;
 				if (null == piUnitBatch.PIBatch) {
 					//build a dummy batch
@@ -153,6 +158,7 @@ namespace PIDataReaderLib {
 						batch = eb.buildBatch(piUnitBatch.PIBatch);
 						batchMap.Add(batch.uid, batch);
 						pidata.batches.Add(batch);
+						lastReadRecordCount += eb.getRecordCount();
 					} else {
 						batch = batchMap[piUnitBatch.PIBatch.UniqueID];
 					}

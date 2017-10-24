@@ -16,7 +16,7 @@ namespace PIDataReaderLib {
 		AFBoundaryType boundaryType;
 		
 		PIServer piServer;
-		long lastReadRecordCount;
+		uint lastReadRecordCount;
 		
 		public PIAFReader(string piServerName, string outDateFormat, string dateFormatPI) {
 			this.dateFormat = outDateFormat;
@@ -88,7 +88,7 @@ namespace PIDataReaderLib {
 			return new AFTimeRange(d1, d2, prv);
 		}
 
-		public long GetLastReadRecordCount() {
+		public uint GetLastReadRecordCount() {
 			return lastReadRecordCount;
 		}
 
