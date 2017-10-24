@@ -16,8 +16,6 @@ namespace PIDataReaderLib {
 
 		private MqttClient mqttClient;
 
-		private ulong publishedMessageCount = 0;
-				
 		internal MQTTWriter(string brokeraddress, int brokerport, string clientname) {
 			this.brokeraddress = brokeraddress;
 			this.brokerport = brokerport;
@@ -25,7 +23,9 @@ namespace PIDataReaderLib {
 
 			this.lastWillMessage = String.Format("Client {0} failed", this.clientname);
 
-			publishedBytesInSchedule = 0;
+			publishedBytesPerWrite = 0;
+			publishedMessagesPerWrite = 0;
+			publishedMessageCount = 0;
 			publishedConfirmedMessageCount = 0;
 		}
 
@@ -92,38 +92,31 @@ namespace PIDataReaderLib {
 			}
 		}
 
-		public override void write(Dictionary<string, PIData> piDataMap, Dictionary<string, string> topicsMap) {
+		public override void write(PIData piData, string equipmentName, Dictionary<string, string> topicsMap) {
 			grandTotalSwatch = Stopwatch.StartNew();
-			publishedBytesInSchedule = 0;
+			publishedBytesPerWrite = 0;
+			publishedMessagesPerWrite = 0;
 
 			if (!mqttClient.IsConnected) {
 				logger.Error("No connection to broker detected. Attempting to reconnect.");
 				close();
 				initAndConnect();
 			}
-
-			foreach (string equipmentName in piDataMap.Keys) {
-				try {
-					PIData piData = piDataMap[equipmentName];
-					string topic = topicsMap[equipmentName];
-					if (!messageQueuesByTopic.ContainsKey(topic)) {
-						messageQueuesByTopic[topic] = new ConcurrentQueue<string>();
-					}
-					write(piData, topic);
-				} catch (Exception e) {
-					logger.Error("Error writing data");
-					logger.Error("Details: {0}", e.ToString());
+						
+			try {
+				string topic = topicsMap[equipmentName];
+				if (!messageQueuesByTopic.ContainsKey(topic)) {
+					messageQueuesByTopic[topic] = new ConcurrentQueue<string>();
 				}
+				write(piData, topic);
+			} catch (Exception e) {
+				logger.Error("Error writing data");
+				logger.Error("Details: {0}", e.ToString());
 			}
-
+			
 			grandTotalSwatch.Stop();
 			double grandTotalTimeSec = grandTotalSwatch.Elapsed.TotalSeconds;
-			double thrput = 0;
-			if (0 != grandTotalTimeSec) {
-				thrput = publishedBytesInSchedule / grandTotalTimeSec;
-			}
-
-			base.raisePublishCompleted(grandTotalTimeSec, thrput, 0);
+			base.raisePublishCompleted(publishedMessagesPerWrite, publishedBytesPerWrite, grandTotalTimeSec);
 		}
 
 		private void write(PIData piData, string topic) {
@@ -168,8 +161,8 @@ namespace PIDataReaderLib {
 			try {
 				payload = System.Text.Encoding.UTF8.GetBytes(mqttMsg);
 				ulong msgId = mqttClient.Publish(topic, payload, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
-				publishedBytesInSchedule += (ulong)payload.Length;
-				publishedMessageCount++;
+				publishedBytesPerWrite += (ulong)payload.Length;
+				publishedMessagesPerWrite++;
 				logger.Info("Message [{0}] - Published {1} bytes of data to MQTT broker. Topic: {2}.", msgId, payload.Length, topic);
 			} catch (Exception ex) {
 				logger.Error("Error publishing MQTT message: {0}", ex.Message);

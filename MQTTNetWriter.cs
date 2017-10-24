@@ -56,7 +56,7 @@ namespace PIDataReaderLib {
 			
 			attemptReconnect = true;
 
-			publishedBytesInSchedule = 0;
+			publishedBytesPerWrite = 0;
 			publishedConfirmedMessageCount = 0;
 		}
 
@@ -83,34 +83,26 @@ namespace PIDataReaderLib {
 			return isClientConnected;
 		}
 
-		public override void write(Dictionary<string, PIData> piDataMap, Dictionary<string, string> topicsMap) {
+		public override void write(PIData piData, string equipmentName, Dictionary<string, string> topicsMap) {
 			grandTotalSwatch = Stopwatch.StartNew();
-			publishedBytesInSchedule = 0;
-
-			foreach (string equipmentName in piDataMap.Keys) {
-				try {
-					PIData piData = piDataMap[equipmentName];
-					string topic = topicsMap[equipmentName];
-					if (!messageQueuesByTopic.ContainsKey(topic)) {
-						messageQueuesByTopic[topic] = new ConcurrentQueue<string>();
-					}
-					write(piData, topic);
-				} catch (Exception e) {
-					logger.Error("Error writing data");
-					logger.Error("Details: {0}", e.ToString());
+			publishedBytesPerWrite = 0;
+			publishedMessagesPerWrite = 0;
+			try {
+				string topic = topicsMap[equipmentName];
+				if (!messageQueuesByTopic.ContainsKey(topic)) {
+					messageQueuesByTopic[topic] = new ConcurrentQueue<string>();
 				}
+				write(piData, topic);
+			} catch (Exception e) {
+				logger.Error("Error writing data");
+				logger.Error("Details: {0}", e.ToString());
 			}
-
+			
 			grandTotalSwatch.Stop();
 			double grandTotalTimeSec = grandTotalSwatch.Elapsed.TotalSeconds;
-			double thrput = 0;
-			if (0 != grandTotalTimeSec) {
-				thrput = publishedBytesInSchedule / grandTotalTimeSec;
-			}
-
-			base.raisePublishCompleted(grandTotalTimeSec, thrput, 0);
+			base.raisePublishCompleted(publishedMessagesPerWrite, publishedBytesPerWrite, grandTotalTimeSec);
 		}
-
+		
 		private void write(PIData piData, string topic) {
 			string mqttPayloadString = piData.writeToString(MQTTWriterParams.SERIALIZATION_TYPE);
 
@@ -152,8 +144,10 @@ namespace PIDataReaderLib {
 			try {
 				await mqttClient.PublishAsync(applicationMessage);
 				logger.Info("Published {0} bytes of data to MQTT broker. Topic: {1}.", payload.Length, topic);
+				publishedMessagesPerWrite++;
 				publishedConfirmedMessageCount++;
-				publishedBytesInSchedule += (ulong)payload.Length;
+				publishedMessageCount++;
+				publishedBytesPerWrite += (ulong)payload.Length;
 				if (!messageQueue.TryDequeue(out message)) {
 					logger.Error("Could not dequeue message from queue. Topic: {0}.", topic);
 				} else {
