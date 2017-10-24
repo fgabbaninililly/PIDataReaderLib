@@ -117,22 +117,5 @@ namespace PIDataReaderLib {
 
 			return;
 		}
-
-		/*
-		private SubBatchItem buildSubBatchItem(PISubBatch piSubBatchItem) {
-			SubBatchItem subBatchItem = new SubBatchItem();
-			subBatchItem.starttime = piSubBatchItem.StartTime.LocalDate.ToString(dateFormat);
-			if (null != piSubBatchItem.EndTime) {
-				//end time may be not available
-				subBatchItem.endtime = piSubBatchItem.EndTime.LocalDate.ToString(dateFormat);
-			} else {
-				subBatchItem.endtime = "";
-			}
-			subBatchItem.name = piSubBatchItem.Name;
-			subBatchItem.uid = piSubBatchItem.UniqueID;
-			return subBatchItem;
-		}
-		*/
-
 	}
 }

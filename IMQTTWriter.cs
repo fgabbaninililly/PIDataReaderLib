@@ -23,16 +23,7 @@ namespace PIDataReaderLib {
 	}
 
 	public class MQTTPublishTerminatedEventArgs : EventArgs {
-		/*
-		public MQTTPublishTerminatedEventArgs(double elapsedTimeSec, double throughput, ushort messageId) {
-			this.elapsedTimeSec = elapsedTimeSec;
-			this.throughput = throughput;
-			this.messageId = messageId;
-		}
-		public double elapsedTimeSec;
-		public double throughput;
-		public ushort messageId;
-		*/
+		
 		public MQTTPublishTerminatedEventArgs(ulong messageCount, ulong byteCount, double elapsedTime) {
 			this.messageCount = messageCount;
 			this.byteCount = byteCount;

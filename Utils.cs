@@ -97,29 +97,6 @@ namespace PIDataReaderLib {
 			return lastReadTimesByEquipment;
 		}
 
-		/*
-		public static Dictionary<string, string> getLastReadTimesByEquipmentFromLogOld() {
-			string fileName = getLogFileFullPath();
-			Dictionary<string, string> lastReadTimesByEquipment = new Dictionary<string, string>();
-			if (!File.Exists(fileName)) {
-				return lastReadTimesByEquipment;
-			}
-
-			StreamReader file = new StreamReader(fileName);
-			try {
-				string line;
-				while ((line = file.ReadLine()) != null) {
-					if (line.Contains(Utils.READEND_MARKER)) {
-						addReadEnd(line, lastReadTimesByEquipment);
-					}
-				}
-			} finally {
-				file.Close();
-			}
-			return lastReadTimesByEquipment;
-		}
-		*/
-
 		public static void redirectLogFile(string newPath) {
 
 			FileTarget fileTarget = null;
