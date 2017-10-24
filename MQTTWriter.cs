@@ -64,14 +64,18 @@ namespace PIDataReaderLib {
 		}
 
 		private void create() {
-			mqttClient = new MqttClient(brokeraddress, brokerport, false, null, null, MqttSslProtocols.None);
-			logger.Info("Created new M2MQTT client connecting to broker {0}", brokeraddress);
+			try { 
+				mqttClient = new MqttClient(brokeraddress, brokerport, false, null, null, MqttSslProtocols.None);
+				logger.Info("Created new M2MQTT client connecting to broker {0}", brokeraddress);
 
-			mqttClient.MqttMsgPublished -= MqttClient_MqttMsgPublished;
-			mqttClient.ConnectionClosed -= MqttClient_ConnectionClosed;
+				mqttClient.MqttMsgPublished -= MqttClient_MqttMsgPublished;
+				mqttClient.ConnectionClosed -= MqttClient_ConnectionClosed;
 
-			mqttClient.MqttMsgPublished += MqttClient_MqttMsgPublished;
-			mqttClient.ConnectionClosed += MqttClient_ConnectionClosed;
+				mqttClient.MqttMsgPublished += MqttClient_MqttMsgPublished;
+				mqttClient.ConnectionClosed += MqttClient_ConnectionClosed;
+			} catch (Exception e) {
+				logger.Fatal("Cannot connect to broker: {0}:{1}. Please check that connection parameters are correct.", brokeraddress, brokerport);
+			}
 		}
 
 		private void connect() {
@@ -86,9 +90,8 @@ namespace PIDataReaderLib {
 				}
 				logger.Info(txt);
 			} catch(Exception ex) {
-				txt = String.Format("Unable to connect to broker {0}:{1}. Please check that a broker is up and running.", brokeraddress, brokerport);
-				logger.Error(txt);
-				logger.Error("Details: {0}", ex.ToString());
+				logger.Fatal("Unable to connect to broker {0}:{1}. Please check that a broker is up and running.", brokeraddress, brokerport);
+				logger.Fatal("Details: {0}", ex.ToString());
 			}
 		}
 

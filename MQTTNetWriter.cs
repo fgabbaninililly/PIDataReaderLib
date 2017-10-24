@@ -66,7 +66,8 @@ namespace PIDataReaderLib {
 				Task tsk = connectAsync();
 				tsk.Wait();
 			} catch (Exception ex) {
-				logger.Error("Error connecting to broker. Details: {0}", ex.ToString());
+				attemptReconnect = false;
+				logger.Fatal("Error connecting to broker. Details: {0}", ex.Message);
 				return;
 			}
 		}
@@ -186,14 +187,18 @@ namespace PIDataReaderLib {
 			}
 
 			logger.Info("Attempting connection to broker. Client name is '{0}'", clientname);
+			await mqttClient.ConnectAsync(options);
+			logger.Info("Connected to broker");
+			
+			/*
 			try {
 				await mqttClient.ConnectAsync(options);
 				logger.Info("Connected to broker");
 			} catch (Exception ex) {
-				string txt = String.Format("Unable to connect to broker {0}:{1}. Please check that a broker is up and running.", brokeraddress, brokerport);
-				logger.Error(txt);
-				logger.Error("Details: {0}", ex.ToString());
+				logger.Fatal("Unable to connect to broker {0}:{1}. Please check that a broker is up and running.", brokeraddress, brokerport);
+				logger.Fatal("Details: {0}", ex.Message);
 			}
+			*/
 		}
 
 		public void disconnect(bool attemptRec) {
