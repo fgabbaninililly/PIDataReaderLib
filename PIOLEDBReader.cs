@@ -60,7 +60,7 @@ namespace PIDataReaderLib {
 		private string dateFormatPI;
 		private string piServerName;
 
-		private long lastReadRecordCount;
+		private uint lastReadRecordCount;
 
 		private OleDbConnection cnn;
 		
@@ -70,7 +70,7 @@ namespace PIDataReaderLib {
 			this.piServerName = piServerName;
 		}
 
-		public long GetLastReadRecordCount() {
+		public uint GetLastReadRecordCount() {
 			return lastReadRecordCount;
 		}
 
@@ -375,7 +375,7 @@ namespace PIDataReaderLib {
 			DataTable dataTable = new DataTable();
 			dataAdapter.Fill(dataTable);
 
-			lastReadRecordCount = lastReadRecordCount + dataTable.Rows.Count;
+			lastReadRecordCount = lastReadRecordCount + (uint)(dataTable.Rows.Count);
 
 			foreach (DataRow row in dataTable.Rows) {
 				addTagRow(tagList, row, phaseTags);

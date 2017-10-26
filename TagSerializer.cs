@@ -24,6 +24,24 @@ namespace PIDataReaderLib {
 			this.outDateFormat = outDateFormat;
 		}
 
+		public void createFileWithHeader(string outFileFullPath, bool append) {
+			if (!append) {
+				System.IO.File.Delete(outFileFullPath);
+			}
+
+			if (!System.IO.File.Exists(outFileFullPath)) { 
+				StreamWriter outFile = null;
+				try {
+					outFile = File.CreateText(outFileFullPath);
+					writeTagTblHeader(outFile);
+				} finally {
+					if (null != outFile) {
+						outFile.Close();
+					}
+				}
+			}
+		}
+
 		/*
 		 * format of tag files is: tag; time (YYYY-MM-DD HH:mm:ss); value; svalue; status; flags
 		 * Example: ITP_MTC_AE-066-491-01.P10.PV; 2016-08-22 11:49:03; -9.2926378; null; 0
@@ -32,16 +50,11 @@ namespace PIDataReaderLib {
 		* format of phase tag files is: tag, time (YYYY-MM-DD HH:mm:ss), value, svalue, status, flags
 		* Example: Phase_T_ITP_PhaseName.P10.BAT, 2016-08-22 11:49:03, leaktest, null, 0
 		*/
-		public void serializeTagsToLocalFile(List<Tag> tags, string outFileFullPath, bool append) {
+		public void serializeTagsToLocalFile(List<Tag> tags, string outFileFullPath) {
 			StreamWriter outFile = null;
 			try {
-				if (append) {
-					outFile = File.AppendText(outFileFullPath);
-				} else {
-					outFile = File.CreateText(outFileFullPath);
-					writeTagTblHeader(outFile);
-				}
-
+				outFile = File.AppendText(outFileFullPath);
+				
 				foreach (Tag tag in tags) {
 					try {
 						serializeTagToLocalFile(tag, outFile);
@@ -50,12 +63,12 @@ namespace PIDataReaderLib {
 					}
 				}
 			} finally {
-				if (null != outFile) { 
+				if (null != outFile) {
 					outFile.Close();
 				}
 			}
 		}
-
+		
 		private void writeTagTblHeader(StreamWriter sw) {
 			StringBuilder sb = new StringBuilder();
 			sb.AppendFormat("tag,time,value,svalue,status,flags");

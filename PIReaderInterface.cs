@@ -8,7 +8,7 @@ namespace PIDataReaderLib {
 	public interface PIReaderInterface {
 		PIData Read(string tagListCsvString, string phaseTagListCsvString, DateTime startTime, DateTime endTime);
 		PIData ReadBatchTree(DateTime startTime, DateTime endTime, string modulePath);
-		long GetLastReadRecordCount();
+		uint GetLastReadRecordCount();
 		//DateTime getReadFinishedTime();
 	}
 	

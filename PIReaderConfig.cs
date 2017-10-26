@@ -8,13 +8,29 @@ namespace PIDataReaderLib {
 	
 	public class TimeUnit {
 		public const string UNIT_SECONDS = "s";
+		public const string UNIT_MINUTES = "m";
 		public const string UNIT_HOURS = "h";
 		public const string UNIT_DAYS = "d";
+
+		public static bool isUnitValid(string timeUnit) {
+			if (null == timeUnit) {
+				return false;
+			}
+			if (!TimeUnit.UNIT_DAYS.Equals(timeUnit) &&
+				!TimeUnit.UNIT_HOURS.Equals(timeUnit) &&
+				!TimeUnit.UNIT_MINUTES.Equals(timeUnit) &&
+				!TimeUnit.UNIT_SECONDS.Equals(timeUnit)) {
+				return false;
+			}
+			return true;
+		}
 	}
 
 	public class TimeMultipliers {
 		public const int HOURS_IN_DAY = 24;
-		public const int SECONDS_IN_HOUR = 3600;
+		public const int SECONDS_IN_MINUTE = 60;
+		public const int MINUTES_IN_HOUR = 60;
+		public const int SECONDS_IN_HOUR = MINUTES_IN_HOUR * SECONDS_IN_MINUTE;
 		public const int SECONDS_IN_DAY = SECONDS_IN_HOUR * HOURS_IN_DAY;
 	}
 
@@ -201,11 +217,17 @@ namespace PIDataReaderLib {
 				return ConfigurationErrors.CFGERR_NULL_READEXTENTTYPE_OBJECT;
 			}
 
+			if (!TimeUnit.isUnitValid(config.read.readExtent.unit)) {
+				return ConfigurationErrors.CFGERR_NULL_READEXTENTTYPE_OBJECT;
+			}
+
 			if (config.read.readExtent.type.Equals(ReadExtent.READ_EXTENT_FREQUENCY)) {
 				if (null == config.read.readExtent.readExtentFrequency) {
 					return ConfigurationErrors.CFGERR_NULL_READEXTENTFREQ_OBJECT;
 				}
-				
+				if (!TimeUnit.isUnitValid(config.read.readExtent.readExtentFrequency.unit)) {
+					return ConfigurationErrors.CFGERR_NULL_READEXTENTTYPE_OBJECT;
+				}
 			} else if (config.read.readExtent.type.Equals(ReadExtent.READ_EXTENT_FIXED)) {
 				if (null == config.read.readExtent.readExtentFixed) {
 					return ConfigurationErrors.CFGERR_NULL_READEXTENTFIXED_OBJECT;
@@ -412,13 +434,13 @@ namespace PIDataReaderLib {
 		[XmlAttribute("slice")]
 		public string slice;
 
-		[XmlAttribute("sliceunit")]
-		public string sliceunit;
+		[XmlAttribute("unit")]
+		public string unit;
 
-		public long getSliceDuration() {
-			long sd = 0;
+		private int getSliceDuration() {
+			int sd = 0;
 			try { 
-				sd = Int64.Parse(slice);
+				sd = int.Parse(slice);
 			} catch(Exception) {}
 			return sd;
 		}
@@ -427,19 +449,19 @@ namespace PIDataReaderLib {
 			return getSliceDuration() != 0;
 		}
 
-		public long getSliceDurationSec() {
-			double multiplier = 1.0;
-			if ("m".Equals(sliceunit.ToLower())) {
-				multiplier = 60.0;
+		public UInt64 getSliceDurationMillisecSec() {
+			int multiplier = 1;
+			if (TimeUnit.UNIT_MINUTES.Equals(unit.ToLower())) {
+				multiplier = TimeMultipliers.SECONDS_IN_MINUTE;
 			}
-			if ("h".Equals(sliceunit.ToLower())) {
-				multiplier = 3600.0;
+			if (TimeUnit.UNIT_HOURS.Equals(unit.ToLower())) {
+				multiplier = TimeMultipliers.SECONDS_IN_HOUR;
 			}
-			if ("d".Equals(sliceunit.ToLower())) {
-				multiplier = 86400.0;
+			if (TimeUnit.UNIT_DAYS.Equals(unit.ToLower())) {
+				multiplier = TimeMultipliers.SECONDS_IN_DAY;
 			}
-						
-			return (long)(multiplier * getSliceDuration());
+			UInt64 sliceDurationSec = (UInt64)(multiplier * getSliceDuration());
+			return sliceDurationSec * 1000;
 		}
 	}
 
@@ -469,6 +491,10 @@ namespace PIDataReaderLib {
 			if (unit.ToLower().Equals(TimeUnit.UNIT_HOURS)) {
 				multiplier = TimeMultipliers.SECONDS_IN_HOUR;
 			}
+			if (unit.ToLower().Equals(TimeUnit.UNIT_MINUTES)) {
+				multiplier = TimeMultipliers.SECONDS_IN_MINUTE;
+			}
+
 			return double.Parse(value) * multiplier;
 		}
 

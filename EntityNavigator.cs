@@ -31,48 +31,6 @@ namespace PIDataReaderLib {
 			if (null != product && product.Length > 0 && !product.Equals(unitBatch.product)) {
 				return false;
 			}
-
-			/*
-			if (null != startDateStr) {
-				DateTime startDate = DateTime.ParseExact(startDateStr, dateFormat, CultureInfo.InvariantCulture);
-				DateTime bStartDate = DateTime.ParseExact(unitBatch.starttime, dateFormat, CultureInfo.InvariantCulture);
-				if (null != endDateStr) {
-					//both input dates NOT NULL
-
-					DateTime bEndDate = DateTime.ParseExact(unitBatch.endtime, dateFormat, CultureInfo.InvariantCulture);
-
-					if (DateTime.Compare(startDate, bStartDate) <= 0 && DateTime.Compare(endDate, bEndDate) >= 0) {
-						//unit batch start is after start date, unit batch end is before end date
-						return true;
-					} else {
-						return false;
-					}
-
-				} else {
-					//end date NULL
-
-					if (DateTime.Compare(startDate, bStartDate) <= 0) {
-						//unit batch start is after start date
-						return true;
-					} else {
-						return false;
-					}
-				}
-			} else {
-				//start date NULL
-				if (null != endDate) {
-					DateTime bEndDate = DateTime.ParseExact(unitBatch.endtime, dateFormat, CultureInfo.InvariantCulture);
-					if (DateTime.Compare(endDate, bEndDate) >= 0) {
-						return true;
-					} else {
-						return false;
-					}
-				} else {
-					//both dates NULL
-					return true;
-				}
-			}
-			*/
 			return true;
 		}
 

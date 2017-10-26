@@ -16,12 +16,8 @@ namespace PIDataReaderLib {
 		AFBoundaryType boundaryType;
 		
 		PIServer piServer;
-		long lastReadRecordCount;
+		uint lastReadRecordCount;
 		
-		DateTime firstValueTimestamp;
-		DateTime lastValueTimestamp;
-		//DateTime readFinishedTimestamp;
-
 		public PIAFReader(string piServerName, string outDateFormat, string dateFormatPI) {
 			this.dateFormat = outDateFormat;
 			this.dateFormatPI = dateFormatPI;
@@ -30,12 +26,6 @@ namespace PIDataReaderLib {
 			this.piServer = piServers[piServerName];
 			boundaryType = AFBoundaryType.Interpolated;
 		}
-
-		/*
-		public DateTime getReadFinishedTime() {
-			return readFinishedTimestamp;
-		}
-		*/
 
 		public string getSummary() {
 			StringBuilder sb = new StringBuilder();
@@ -98,7 +88,7 @@ namespace PIDataReaderLib {
 			return new AFTimeRange(d1, d2, prv);
 		}
 
-		public long GetLastReadRecordCount() {
+		public uint GetLastReadRecordCount() {
 			return lastReadRecordCount;
 		}
 

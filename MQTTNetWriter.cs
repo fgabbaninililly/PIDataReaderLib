@@ -56,8 +56,9 @@ namespace PIDataReaderLib {
 			
 			attemptReconnect = true;
 
-			publishedBytesInSchedule = 0;
+			publishedBytesPerWrite = 0;
 			publishedConfirmedMessageCount = 0;
+			publishedMessageCount = 0;
 		}
 
 		public override void initAndConnect() {
@@ -66,7 +67,8 @@ namespace PIDataReaderLib {
 				Task tsk = connectAsync();
 				tsk.Wait();
 			} catch (Exception ex) {
-				logger.Error("Error connecting to broker. Details: {0}", ex.ToString());
+				attemptReconnect = false;
+				logger.Fatal("Error connecting to broker. Details: {0}", ex.Message);
 				return;
 			}
 		}
@@ -83,34 +85,26 @@ namespace PIDataReaderLib {
 			return isClientConnected;
 		}
 
-		public override void write(Dictionary<string, PIData> piDataMap, Dictionary<string, string> topicsMap) {
+		public override void write(PIData piData, string equipmentName, Dictionary<string, string> topicsMap) {
 			grandTotalSwatch = Stopwatch.StartNew();
-			publishedBytesInSchedule = 0;
-
-			foreach (string equipmentName in piDataMap.Keys) {
-				try {
-					PIData piData = piDataMap[equipmentName];
-					string topic = topicsMap[equipmentName];
-					if (!messageQueuesByTopic.ContainsKey(topic)) {
-						messageQueuesByTopic[topic] = new ConcurrentQueue<string>();
-					}
-					write(piData, topic);
-				} catch (Exception e) {
-					logger.Error("Error writing data");
-					logger.Error("Details: {0}", e.ToString());
+			publishedBytesPerWrite = 0;
+			publishedMessagesPerWrite = 0;
+			try {
+				string topic = topicsMap[equipmentName];
+				if (!messageQueuesByTopic.ContainsKey(topic)) {
+					messageQueuesByTopic[topic] = new ConcurrentQueue<string>();
 				}
+				write(piData, topic);
+			} catch (Exception e) {
+				logger.Error("Error writing data");
+				logger.Error("Details: {0}", e.ToString());
 			}
-
+			
 			grandTotalSwatch.Stop();
 			double grandTotalTimeSec = grandTotalSwatch.Elapsed.TotalSeconds;
-			double thrput = 0;
-			if (0 != grandTotalTimeSec) {
-				thrput = publishedBytesInSchedule / grandTotalTimeSec;
-			}
-
-			base.raisePublishCompleted(grandTotalTimeSec, thrput, 0);
+			base.raisePublishCompleted(publishedMessagesPerWrite, publishedBytesPerWrite, grandTotalTimeSec);
 		}
-
+		
 		private void write(PIData piData, string topic) {
 			string mqttPayloadString = piData.writeToString(MQTTWriterParams.SERIALIZATION_TYPE);
 
@@ -152,8 +146,10 @@ namespace PIDataReaderLib {
 			try {
 				await mqttClient.PublishAsync(applicationMessage);
 				logger.Info("Published {0} bytes of data to MQTT broker. Topic: {1}.", payload.Length, topic);
+				publishedMessagesPerWrite++;
 				publishedConfirmedMessageCount++;
-				publishedBytesInSchedule += (ulong)payload.Length;
+				publishedMessageCount++;
+				publishedBytesPerWrite += (ulong)payload.Length;
 				if (!messageQueue.TryDequeue(out message)) {
 					logger.Error("Could not dequeue message from queue. Topic: {0}.", topic);
 				} else {
@@ -192,14 +188,18 @@ namespace PIDataReaderLib {
 			}
 
 			logger.Info("Attempting connection to broker. Client name is '{0}'", clientname);
+			await mqttClient.ConnectAsync(options);
+			logger.Info("Connected to broker");
+			
+			/*
 			try {
 				await mqttClient.ConnectAsync(options);
 				logger.Info("Connected to broker");
 			} catch (Exception ex) {
-				string txt = String.Format("Unable to connect to broker {0}:{1}. Please check that a broker is up and running.", brokeraddress, brokerport);
-				logger.Error(txt);
-				logger.Error("Details: {0}", ex.ToString());
+				logger.Fatal("Unable to connect to broker {0}:{1}. Please check that a broker is up and running.", brokeraddress, brokerport);
+				logger.Fatal("Details: {0}", ex.Message);
 			}
+			*/
 		}
 
 		public void disconnect(bool attemptRec) {
