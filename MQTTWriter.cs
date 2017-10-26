@@ -73,7 +73,7 @@ namespace PIDataReaderLib {
 
 				mqttClient.MqttMsgPublished += MqttClient_MqttMsgPublished;
 				mqttClient.ConnectionClosed += MqttClient_ConnectionClosed;
-			} catch (Exception e) {
+			} catch (Exception) {
 				logger.Fatal("Cannot connect to broker: {0}:{1}. Please check that connection parameters are correct.", brokeraddress, brokerport);
 			}
 		}
@@ -149,24 +149,29 @@ namespace PIDataReaderLib {
 		private void writeQueue(ConcurrentQueue<string> messageQueue, string topic) {
 			while (messageQueue.Count > 0) {
 				string msg = "";
-				bool res = messageQueue.TryDequeue(out msg);
+				bool res = messageQueue.TryPeek(out msg);
 				if (!res) {
 					logger.Error("Could not dequeue message!");
 				} else {
-					publish(msg, topic);
-					logger.Info("{0} message(s) left in queue.", messageQueue.Count);
+					publish(messageQueue, msg, topic);
 				}
 			}
 		}
 		
-		private void publish(string mqttMsg, string topic) {
+		private void publish(ConcurrentQueue<string> messageQueue, string mqttMsg, string topic) {
 			byte[] payload;
 			try {
 				payload = System.Text.Encoding.UTF8.GetBytes(mqttMsg);
 				ulong msgId = mqttClient.Publish(topic, payload, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
+				logger.Info("Message [{0}] - Published {1} bytes of data to MQTT broker. Topic: {2}.", msgId, payload.Length, topic);
 				publishedBytesPerWrite += (ulong)payload.Length;
 				publishedMessagesPerWrite++;
-				logger.Info("Message [{0}] - Published {1} bytes of data to MQTT broker. Topic: {2}.", msgId, payload.Length, topic);
+				publishedMessageCount++;
+				if (!messageQueue.TryDequeue(out mqttMsg)) {
+					logger.Error("Could not dequeue message from queue. Topic: {0}.", topic);
+				} else {
+					logger.Info("{0} message(s) left in queue.", messageQueue.Count);
+				}
 			} catch (Exception ex) {
 				logger.Error("Error publishing MQTT message: {0}", ex.Message);
 			}
