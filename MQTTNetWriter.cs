@@ -58,6 +58,7 @@ namespace PIDataReaderLib {
 
 			publishedBytesPerWrite = 0;
 			publishedConfirmedMessageCount = 0;
+			publishedMessageCount = 0;
 		}
 
 		public override void initAndConnect() {
