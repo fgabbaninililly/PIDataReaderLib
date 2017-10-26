@@ -53,8 +53,10 @@ namespace PIDataReaderLib {
 				string destFileUBatch = String.Format(@"{0}\{1}.ubatch.txt", destFolder, moduleName);
 				string destFileSBatch = String.Format(@"{0}\{1}.sbatch.txt", destFolder, moduleName);
 				BatchSerializer batchSerializer = new BatchSerializer(destFileBatch, destFileUBatch, destFileSBatch, inDateFormat, outDateFormat);
-				bool b = batchSerializer.createFiles(append);
-				batchSerializer.serializeBatchesToLocalFile(piData.batches);
+				
+				if (batchSerializer.createFilesWithHeader(append)) {
+					batchSerializer.serializeBatchesToLocalFile(piData.batches);
+				}
 				batchSerializer.closeFiles();
 			} catch (Exception e) {
 				logger.Error(e.ToString());

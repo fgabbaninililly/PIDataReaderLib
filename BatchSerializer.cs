@@ -34,6 +34,53 @@ namespace PIDataReaderLib {
 			this.outDateFormat = outDateFormat;
 		}
 
+		public bool createFilesWithHeader(bool append) {
+			if (!append) {
+				System.IO.File.Delete(batchOutFileFullPath);
+				System.IO.File.Delete(unitBatchOutFilePath);
+				System.IO.File.Delete(subBatchOutFilePath);
+			}
+
+			try {
+				if (!System.IO.File.Exists(batchOutFileFullPath)) {
+					swBatch = File.AppendText(batchOutFileFullPath);
+					writeBatchTblHeader();
+				} else {
+					swBatch = File.AppendText(batchOutFileFullPath);
+				}
+			} catch (Exception) {
+				logger.Error("Error creating file or writing header to file: {0}", batchOutFileFullPath);
+				return false;
+			}
+
+			try {
+				if (!System.IO.File.Exists(unitBatchOutFilePath)) {
+					swUnitBatch = File.AppendText(unitBatchOutFilePath);
+					writeUnitBatchTblHeader();
+				} else {
+					swUnitBatch = File.AppendText(unitBatchOutFilePath);
+				}
+			} catch (Exception) {
+				logger.Error("Error creating file or writing header to file: {0}", batchOutFileFullPath);
+				return false;
+			}
+
+			try {
+				if (!System.IO.File.Exists(subBatchOutFilePath)) {
+					swSubBatch = File.AppendText(subBatchOutFilePath);
+					writeSubBatchTblHeader();
+				} else {
+					swSubBatch = File.AppendText(subBatchOutFilePath);
+				}
+			} catch (Exception) {
+				logger.Error("Error creating file or writing header to file: {0}", batchOutFileFullPath);
+				return false;
+			}
+
+			return true;
+		}
+
+		[System.Obsolete]
 		public bool createFiles(bool append) {
 			swBatch = getWriter(batchOutFileFullPath, append);
 			if (null == swBatch) {
@@ -60,19 +107,23 @@ namespace PIDataReaderLib {
 		}
 
 		public void closeFiles() {
-			if (null != swBatch) {
-				swBatch.Flush();
-				swBatch.Close();
-			}
+			try { 
+				if (null != swBatch) {
+					swBatch.Flush();
+					swBatch.Close();
+				}
 
-			if (null != swUnitBatch) {
-				swUnitBatch.Flush();
-				swUnitBatch.Close();
-			}
+				if (null != swUnitBatch) {
+					swUnitBatch.Flush();
+					swUnitBatch.Close();
+				}
 
-			if (null != swSubBatch) {
-				swSubBatch.Flush();
-				swSubBatch.Close();
+				if (null != swSubBatch) {
+					swSubBatch.Flush();
+					swSubBatch.Close();
+				}
+			} catch(Exception e) {
+				logger.Error("Error closing file. Details: {0}", e.Message);
 			}
 		}
 
@@ -96,7 +147,7 @@ namespace PIDataReaderLib {
 					}
 					
 					try { 
-						sb.AppendFormat("{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{1}{7}", batch.uid, csvSeparator, batch.batchid, hadoopStartDate, hadoopEndDate, batch.product, batch.recipe, "");
+						sb.AppendFormat("'{0}'{1}'{2}'{1}{3}{1}{4}{1}'{5}'{1}'{6}'{1}'{7}'", batch.uid, csvSeparator, batch.batchid, hadoopStartDate, hadoopEndDate, batch.product, batch.recipe, "");
 						swBatch.WriteLine(sb.ToString());
 						swBatch.Flush();
 					} catch (Exception e) {
@@ -138,7 +189,7 @@ namespace PIDataReaderLib {
 				}
 
 				try { 
-					sb.AppendFormat(@"{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{1}{7}{1}{8}", unitBatch.uid, csvSeparator, unitBatch.batchid, hadoopStartDate, hadoopEndDate, unitBatch.product, unitBatch.procedure, unitBatch.moduleuid, refBatch.uid);
+					sb.AppendFormat(@"'{0}'{1}'{2}'{1}{3}{1}{4}{1}'{5}'{1}'{6}'{1}'{7}'{1}'{8}'", unitBatch.uid, csvSeparator, unitBatch.batchid, hadoopStartDate, hadoopEndDate, unitBatch.product, unitBatch.procedure, unitBatch.moduleuid, refBatch.uid);
 					swUnitBatch.WriteLine(sb.ToString());
 					swUnitBatch.Flush();
 				} catch (Exception e) {
@@ -197,7 +248,7 @@ namespace PIDataReaderLib {
 			}
 
 			try {
-				sb.AppendFormat(@"{0}{1}{2}{1}{3}{1}{4}{1}{5}{1}{6}{1}{7}{1}{8}{1}{9}{1}{10}", subBatch.uid, csvSeparator, refUnitBatchId, path, subBatch.name, level, subBatch.subBatches.Count, hadoopStartDate, hadoopEndDate, subBatch.headinguid, parentUid);
+				sb.AppendFormat(@"'{0}'{1}'{2}'{1}'{3}'{1}'{4}'{1}{5}{1}{6}{1}{7}{1}{8}{1}'{9}'{1}'{10}'", subBatch.uid, csvSeparator, refUnitBatchId, path, subBatch.name, level, subBatch.subBatches.Count, hadoopStartDate, hadoopEndDate, subBatch.headinguid, parentUid);
 				swSubBatch.WriteLine(sb.ToString());
 				swSubBatch.Flush();
 			} catch (Exception e) {
@@ -205,12 +256,13 @@ namespace PIDataReaderLib {
 				logger.Error(">>>Details: {0}", e.ToString());
 			}
 		}
-		
+
 		/*
 		 * If the file specified by path does not exist, it is created. 
 		 * If the file does exist, write operations to the StreamWriter append text to the file. 
 		 * Additional threads are permitted to read the file while it is open.
 		 */
+		 [System.Obsolete]
 		private StreamWriter getWriter(string outFilePath, bool append) {
 			StreamWriter sw = null;
 			try {
