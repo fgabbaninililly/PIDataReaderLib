@@ -23,14 +23,15 @@ namespace PIDataReaderLib {
 	}
 
 	public class MQTTPublishTerminatedEventArgs : EventArgs {
-		public MQTTPublishTerminatedEventArgs(double elapsedTimeSec, double throughput, ushort messageId) {
-			this.elapsedTimeSec = elapsedTimeSec;
-			this.throughput = throughput;
-			this.messageId = messageId;
+		
+		public MQTTPublishTerminatedEventArgs(ulong messageCount, ulong byteCount, double elapsedTime) {
+			this.messageCount = messageCount;
+			this.byteCount = byteCount;
+			this.elapsedTime = elapsedTime;
 		}
-		public double elapsedTimeSec;
-		public double throughput;
-		public ushort messageId;
+		public ulong messageCount;
+		public ulong byteCount;
+		public double elapsedTime;
 	}
 
 	public class MQTTClientClosedEventArgs : EventArgs {
@@ -42,7 +43,7 @@ namespace PIDataReaderLib {
 		string getClientName();
 		void initAndConnect();
 		void close();
-		void write(Dictionary<string, PIData> piDataMap, Dictionary<string, string> topicsMap);
+		void write(PIData piData, string equipmentName, Dictionary<string, string> topicsMap);
 	}
 
 	public abstract class AbstractMQTTWriter : IMQTTWriter {
@@ -56,14 +57,16 @@ namespace PIDataReaderLib {
 		public abstract string getClientName();
 		public abstract void initAndConnect();
 		public abstract void close();
-		public abstract void write(Dictionary<string, PIData> piDataMap, Dictionary<string, string> topicsMap);
+		public abstract void write(PIData piData, string equipmentName, Dictionary<string, string> topicsMap);
 
 		protected string brokeraddress;
 		protected int brokerport;
 		protected string clientname;
 		protected string lastWillMessage;
 
-		protected ulong publishedBytesInSchedule;
+		protected ulong publishedBytesPerWrite;
+		protected ulong publishedMessagesPerWrite;
+		protected ulong publishedMessageCount;
 		protected ulong publishedConfirmedMessageCount;
 
 		internal void raiseWriterClosed() {
@@ -73,9 +76,9 @@ namespace PIDataReaderLib {
 			}
 		}
 
-		internal void raisePublishCompleted(double grandTotalTimeSec, double thrput, int v) {
+		internal void raisePublishCompleted(ulong messageCount, ulong byteCount, double elapsedTime) {
 			if (null != MQTTWriter_PublishCompleted) {
-				MQTTPublishTerminatedEventArgs ea = new MQTTPublishTerminatedEventArgs(grandTotalTimeSec, thrput, 0);
+				MQTTPublishTerminatedEventArgs ea = new MQTTPublishTerminatedEventArgs(messageCount, byteCount, elapsedTime);
 				MQTTWriter_PublishCompleted(ea);
 			}
 		}

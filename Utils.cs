@@ -14,9 +14,15 @@ namespace PIDataReaderLib {
 		public DateTime start { get; set; }
 		public DateTime end { get; set; }
 
+		private const string format = "yyyy-MM-ddTHH-mm-ss.fff";
+
 		public ReadInterval(DateTime start, DateTime end) {
 			this.start = start;
 			this.end = end;
+		}
+
+		public override string ToString() {
+			return String.Format("[{0}, {1}]", start.ToString(format), end.ToString(format));
 		}
 	}
 	public class Utils {
@@ -43,6 +49,10 @@ namespace PIDataReaderLib {
 			Dictionary<string, string> lastReadTimesFromLog = getLastReadTimesByEquipment(logFileName);
 			
 			string folderName = Path.GetDirectoryName(logFileName);
+			if (!Directory.Exists(folderName)) {
+				return lastReadTimesFromLog;
+			}
+			
 			DirectoryInfo info = new DirectoryInfo(folderName);
 			FileInfo[] files = info.GetFiles("*.log");
 
@@ -86,29 +96,6 @@ namespace PIDataReaderLib {
 			}
 			return lastReadTimesByEquipment;
 		}
-
-		/*
-		public static Dictionary<string, string> getLastReadTimesByEquipmentFromLogOld() {
-			string fileName = getLogFileFullPath();
-			Dictionary<string, string> lastReadTimesByEquipment = new Dictionary<string, string>();
-			if (!File.Exists(fileName)) {
-				return lastReadTimesByEquipment;
-			}
-
-			StreamReader file = new StreamReader(fileName);
-			try {
-				string line;
-				while ((line = file.ReadLine()) != null) {
-					if (line.Contains(Utils.READEND_MARKER)) {
-						addReadEnd(line, lastReadTimesByEquipment);
-					}
-				}
-			} finally {
-				file.Close();
-			}
-			return lastReadTimesByEquipment;
-		}
-		*/
 
 		public static void redirectLogFile(string newPath) {
 
