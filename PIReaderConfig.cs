@@ -76,7 +76,7 @@ namespace PIDataReaderLib {
 		}
 	}
 
-	[XmlRootAttribute("config", Namespace = "", IsNullable = false)]
+	[XmlRootAttribute("config", Namespace = "http://www.lilly.com/PIDR", IsNullable = false)]
 	public class PIReaderConfig {
 		[XmlAttribute("test")]
 		public string test;
@@ -110,6 +110,20 @@ namespace PIDataReaderLib {
 				}
 			}
 			return null;
+		}
+
+		public static void xmlValidate(string configFile) {
+			XmlDocument xml = new XmlDocument();
+			xml.Load(configFile);
+
+			XmlElement ele = (XmlElement)(xml.GetElementsByTagName("config").Item(0));
+			string[] schemaLoc = ele.GetAttribute("xsi:schemaLocation").Split(' ');
+
+			string xmlNamespace = schemaLoc[0];
+			string xsdFilename = schemaLoc[1];
+			xml.Schemas.Add(xmlNamespace, xsdFilename);
+			xml.Validate(null);
+			
 		}
 
 		public static PIReaderConfig parseFromFile(string configFile) {
