@@ -41,6 +41,7 @@ namespace PIDataReaderLib {
 		public static readonly int CFGERR_NULL_PICONNECTION_OBJECT = 20;
 		public static readonly int CFGERR_NULL_MQTTCONNECTION_OBJECT = 30;
 		public static readonly int CFGERR_NULL_AFCONNECTION_OBJECT = 31;
+		public static readonly int CFGERR_INVALID_MQTTKEEPALIVE = 32;
 		public static readonly int CFGERR_NULL_READ_OBJECT = 40;
 		public static readonly int CFGERR_INCONSISTENT_READMODE = 41;
 		public static readonly int CFGERR_NULL_READEXTENT_OBJECT = 50;
@@ -61,6 +62,7 @@ namespace PIDataReaderLib {
 			this.Add(CFGERR_NULL_PICONNECTION_OBJECT, "Null or invalid reference to PI connection object. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_AFCONNECTION_OBJECT, "Null or invalid reference to AF connection object. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_MQTTCONNECTION_OBJECT, "Null or invalid reference to MQTT connection object. Please check your xml configuration file.");
+			this.Add(CFGERR_INVALID_MQTTKEEPALIVE, "Null or invalid MQTT keep alive. Please check your xml configuration file. Keep alive value for the MQTT connection should be between 0 and 65535.");
 			this.Add(CFGERR_NULL_READ_OBJECT, "Null or invalid reference to Read section. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_READEXTENT_OBJECT, "Null or invalid reference to ReadExtent section. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_READEXTENTTYPE_OBJECT, "Null or invalid read extent type. Please check your xml configuration file.");
@@ -196,7 +198,12 @@ namespace PIDataReaderLib {
 			if (null == mqttConnection) {
 				return ConfigurationErrors.CFGERR_NULL_MQTTCONNECTION_OBJECT;
 			}
-
+			try {
+				ushort keepAliveSec = ushort.Parse(mqttConnection.getParameterValueByName(Parameter.PARAMNAME_MQTTKEEPALIVESEC));
+			} catch (Exception) {
+				return ConfigurationErrors.CFGERR_INVALID_MQTTKEEPALIVE;
+			}
+			
 			//READ SECTION
 			if (null == config.read) {
 				return ConfigurationErrors.CFGERR_NULL_READ_OBJECT;
@@ -298,6 +305,8 @@ namespace PIDataReaderLib {
 	}
 
 	public class Connection {
+		public const ushort DEFAULT_MQTT_KEEPALIVE_SEC = 240; //keep alive defaults to 4min
+
 		[XmlAttribute("name")]
 		public string name;
 
@@ -323,6 +332,7 @@ namespace PIDataReaderLib {
 		public const string PARAMNAME_MQTTBROKERADDRESS = "mqttbrokeraddress";
 		public const string PARAMNAME_MQTTBROKERPORT = "mqttbrokerport";
 		public const string PARAMNAME_MQTTCLIENTNAME = "mqttclientname";
+		public const string PARAMNAME_MQTTKEEPALIVESEC = "mqttkeepalivesec";
 
 		public const string PARAMNAME_AFSERVERNAME = "afservername";
 		public const string PARAMNAME_AFDATABASE = "afdatabase";
