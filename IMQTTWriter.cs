@@ -11,14 +11,14 @@ namespace PIDataReaderLib {
 	}
 
 	public class MQTTWriterFactory {
-		public static AbstractMQTTWriter createM2MQTT(string brokeraddress, string brokerport, string clientname) {
+		public static AbstractMQTTWriter createM2MQTT(string brokeraddress, string brokerport, string clientname, ushort keepAliveSec) {
 			int brokerportInt = Int32.Parse(brokerport);
-			return new MQTTWriter(brokeraddress, brokerportInt, clientname);
+			return new MQTTWriter(brokeraddress, brokerportInt, clientname, keepAliveSec);
 		}
 
-		public static AbstractMQTTWriter createMQTTNet(string brokeraddress, string brokerport, string clientname) {
+		public static AbstractMQTTWriter createMQTTNet(string brokeraddress, string brokerport, string clientname, ushort keepAliveSec) {
 			int brokerportInt = Int32.Parse(brokerport);
-			return new MQTTNetWriter(brokeraddress, brokerportInt, clientname);
+			return new MQTTNetWriter(brokeraddress, brokerportInt, clientname, keepAliveSec);
 		}
 	}
 
@@ -62,6 +62,7 @@ namespace PIDataReaderLib {
 		protected string brokeraddress;
 		protected int brokerport;
 		protected string clientname;
+		protected ushort keepAliveSec;
 		protected string lastWillMessage;
 
 		protected ulong publishedBytesPerWrite;

@@ -16,10 +16,11 @@ namespace PIDataReaderLib {
 
 		private MqttClient mqttClient;
 
-		internal MQTTWriter(string brokeraddress, int brokerport, string clientname) {
+		internal MQTTWriter(string brokeraddress, int brokerport, string clientname, ushort keepAliveSec) {
 			this.brokeraddress = brokeraddress;
 			this.brokerport = brokerport;
 			this.clientname = clientname;
+			this.keepAliveSec = keepAliveSec;
 
 			this.lastWillMessage = String.Format("Client {0} failed", this.clientname);
 
@@ -82,7 +83,7 @@ namespace PIDataReaderLib {
 			string txt;
 			try {
 				logger.Info("Attempting connection to broker. Client name is '{0}'", clientname);
-				byte b = mqttClient.Connect(clientname, "", "", false, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, true, MQTTWriterParams.MQTT_LASTWILL_TOPIC, lastWillMessage, false, 1000); 
+				byte b = mqttClient.Connect(clientname, "", "", false, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, true, MQTTWriterParams.MQTT_LASTWILL_TOPIC, lastWillMessage, false, keepAliveSec); 
 				if (0 == b) {
 					txt = "Connected to broker";
 				} else {

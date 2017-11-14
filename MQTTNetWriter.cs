@@ -38,16 +38,18 @@ namespace PIDataReaderLib {
 			set { attemptReconnectVar = value; }
 		}
 
-		internal MQTTNetWriter(string brokeraddress, int brokerport, string clientname) {
+		internal MQTTNetWriter(string brokeraddress, int brokerport, string clientname, ushort keepAliveSec) {
 			this.brokeraddress = brokeraddress;
 			this.brokerport = brokerport;
 			this.clientname = clientname;
-			this.lastWillMessage = String.Format("Client {0} failed", this.clientname);
+			this.keepAliveSec = keepAliveSec;
 
+			this.lastWillMessage = String.Format("Client {0} failed", this.clientname);
+			
 			options = new MqttClientTcpOptions();
 			options.CleanSession = false;
 			options.ClientId = clientname;
-			options.KeepAlivePeriod = new TimeSpan(0, 0, 1000);
+			options.KeepAlivePeriod = TimeSpan.FromSeconds(keepAliveSec);
 			options.Server = brokeraddress;
 			options.Port = brokerport;
 
