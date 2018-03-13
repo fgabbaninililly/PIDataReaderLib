@@ -13,14 +13,21 @@ namespace PIDataReaderLib {
 	public class PIAFReader : PIReaderInterface {
 		string dateFormat;
 		string dateFormatPI;
+		private string timeSeparator;
+		private string fieldSeparator;
+		private string valueSeparator;
+
 		AFBoundaryType boundaryType;
 		
 		PIServer piServer;
 		uint lastReadRecordCount;
 		
-		public PIAFReader(string piServerName, string outDateFormat, string dateFormatPI) {
+		public PIAFReader(string piServerName, string outDateFormat, string dateFormatPI, string timeSeparator, string fieldSeparator, string valueSeparator) {
 			this.dateFormat = outDateFormat;
 			this.dateFormatPI = dateFormatPI;
+			this.timeSeparator = timeSeparator;
+			this.fieldSeparator = fieldSeparator;
+			this.valueSeparator = valueSeparator;
 
 			PIServers piServers = new PIServers();
 			this.piServer = piServers[piServerName];
@@ -57,6 +64,10 @@ namespace PIDataReaderLib {
 			piData.readIntervalStart = startTime.ToString(dateFormat);
 			piData.readIntervalEnd = endTime.ToString(dateFormat);
 			piData.readFinished = endTime.ToString(dateFormat);
+			piData.timeSeparator = timeSeparator;
+			piData.fieldSeparator = fieldSeparator;
+			piData.valueSeparator = valueSeparator;
+
 			return piData;
 		}
 
@@ -124,7 +135,8 @@ namespace PIDataReaderLib {
 				lastReadRecordCount = lastReadRecordCount + 1;
 			}
 			if (sb.Length > 0) {
-				sb.Remove(sb.Length - 1, 1);
+				int vsl = valueSeparator.Length;
+				sb.Remove(sb.Length - vsl, vsl);
 			}
 			tag.tagvalues = sb.ToString();
 			return tag;
@@ -143,7 +155,16 @@ namespace PIDataReaderLib {
 				tagSValue = tagValue;
 				tagValue = "";
 			}
-			sb.AppendFormat("{0}:{1}|{2}|{3},", afVal.Timestamp.LocalTime.ToString(dateFormat), tagValue, tagSValue, (int)afvStatus);
+			sb.AppendFormat("{0}{1}{2}{3}{4}{5}{6}{7}", 
+				afVal.Timestamp.LocalTime.ToString(dateFormat), //{0}
+				timeSeparator,                                  //{1}
+				tagValue,                                       //{2}
+				fieldSeparator,                                 //{3}
+				tagSValue,                                      //{4}
+				fieldSeparator,                                 //{5}
+				(int)afvStatus,                                 //{6}
+				valueSeparator                                  //{7}
+				);                                
 		}
 
 		private void serializeAFValue(StringBuilder sb, AFValue afVal, Type valType) {
@@ -153,7 +174,7 @@ namespace PIDataReaderLib {
 			} else if (TypeUtil.Instance.isInteger(valType)) {
 				tagValue = afVal.ValueAsInt32().ToString();
 			}
-			sb.AppendFormat("{0}:{1},", afVal.Timestamp.LocalTime.ToString(dateFormat), tagValue);
+			sb.AppendFormat("{0}{1}{2}{3}", afVal.Timestamp.LocalTime.ToString(dateFormat), timeSeparator, tagValue, valueSeparator);
 		}
 
 	}

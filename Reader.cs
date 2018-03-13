@@ -11,7 +11,10 @@ namespace PIDataReaderLib {
 		private PIReaderInterface piReader;
 		private string outDateFormat;
 		private string piDateFormat;
-		
+		string timeSeparator;
+		string fieldSeparator;
+		string valueSeparator;
+
 		private string piServerName;
 		private string piSdkType;
 		private string boundary = Parameter.PARAM_VALUE_BOUNDARY_INSIDE;
@@ -25,7 +28,10 @@ namespace PIDataReaderLib {
 			string piSdkType,
 			bool readBatchMode, 
 			string outDateFormat, 
-			string piDateFormat
+			string piDateFormat,
+			string timeSeparator, 
+			string fieldSeparator, 
+			string valueSeparator
 			) {
 
 			this.piServerName = piServerName;
@@ -33,6 +39,10 @@ namespace PIDataReaderLib {
 			this.readBatchMode = readBatchMode;
 			this.outDateFormat = outDateFormat;
 			this.piDateFormat = piDateFormat;
+
+			this.timeSeparator = timeSeparator;
+			this.fieldSeparator = fieldSeparator;
+			this.valueSeparator = valueSeparator;
 
 			this.boundary = Parameter.PARAM_VALUE_BOUNDARY_INSIDE;
 		}
@@ -53,7 +63,7 @@ namespace PIDataReaderLib {
 				if (piSdkType.ToLower().Equals(Parameter.PARAM_VALUE_SDK_OLEDB)) {
 					//use PI OLEDB
 					logger.Info("Using OLEDB");
-					PIOLEDBReader piOLEDBReader = new PIOLEDBReader(piServerName, outDateFormat, piDateFormat);
+					PIOLEDBReader piOLEDBReader = new PIOLEDBReader(piServerName, outDateFormat, piDateFormat, timeSeparator, fieldSeparator, valueSeparator);
 					piReader = piOLEDBReader;
 				} else if (piSdkType.ToLower().Equals(Parameter.PARAM_VALUE_SDK_AF)) {
 					//use PI AF SDK
@@ -65,14 +75,14 @@ namespace PIDataReaderLib {
 						piReader = null;
 						throw new Exception(str);
 					} else {
-						PIAFReader piAFReader = new PIAFReader(piServerName, outDateFormat, piDateFormat);
+						PIAFReader piAFReader = new PIAFReader(piServerName, outDateFormat, piDateFormat, timeSeparator, fieldSeparator, valueSeparator);
 						piAFReader.setBoundaryType(boundary);
 						piReader = piAFReader;
 					}
 				} else {
 					//use PI SDK
 					logger.Info("Using PI SDK");
-					PISDKReader piSDKReader = new PISDKReader(piServerName, outDateFormat, piDateFormat);
+					PISDKReader piSDKReader = new PISDKReader(piServerName, outDateFormat, piDateFormat, timeSeparator, fieldSeparator, valueSeparator);
 					piReader = piSDKReader;
 				}
 				logger.Info("Reader successfully built. Connecting to PI server named {0}", piServerName);

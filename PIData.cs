@@ -30,6 +30,15 @@ namespace PIDataReaderLib {
 		[XmlAttribute("schedule_frequency_sec")]
 		public string scheduleFrequencySec;
 
+		[XmlAttribute("timeSeparator")]
+		public string timeSeparator;
+
+		[XmlAttribute("fieldSeparator")]
+		public string fieldSeparator;
+
+		[XmlAttribute("valueSeparator")]
+		public string valueSeparator;
+
 		[XmlElement("batch")]
 		public List<Batch> batches { get; set; }
 
@@ -225,7 +234,7 @@ namespace PIDataReaderLib {
 
 		[XmlIgnoreAttribute]
 		public Type valueType;
-
+		
 		public Tag() {
 			isPhase = "false";
 		}
@@ -244,19 +253,45 @@ namespace PIDataReaderLib {
 			return true;
 		}
 
-		public void addTimedValue(string dateTimeStr, string valueStr) {
+		public void addTimedValue(string dateTimeStr, string valueStr, string timeSeparator, string fieldSeparator, string valueSeparator) {
 			if (null == tagvalues || 0 == tagvalues.Length) {
-				tagvalues += String.Format("{0}:{1}", dateTimeStr, valueStr);
-			} else { 
-				tagvalues += String.Format(",{0}:{1}", dateTimeStr, valueStr);
+				tagvalues += String.Format("{0}{1}{2}", 
+					dateTimeStr,							//{0}
+					timeSeparator,                          //{1}
+					valueStr                                //{2}
+					);	
+			} else {
+				tagvalues += String.Format("{0}{1}{2}{3}", 
+					valueSeparator,                         //{0}
+					dateTimeStr,                            //{1}
+					timeSeparator,                          //{2}
+					valueStr                                //{3}
+					);
 			}
 		}
 
-		public void addTimedTriple(string dateTimeStr, string valueStr, string svalueStr, string statusStr) {
+		public void addTimedTriple(string dateTimeStr, string valueStr, string svalueStr, string statusStr, string timeSeparator, string fieldSeparator, string valueSeparator) {
 			if (null == tagvalues || 0 == tagvalues.Length) {
-				tagvalues += String.Format("{0}:{1}|{2}|{3}", dateTimeStr, valueStr, svalueStr, statusStr);
+				tagvalues += String.Format("{0}{1}{2}{3}{4}{5}{6}", 
+					dateTimeStr,							//{0}
+					timeSeparator,                          //{1}
+					valueStr,                               //{2}
+					fieldSeparator,                         //{3}
+					svalueStr,                              //{4}
+					fieldSeparator,                         //{5}
+					statusStr                               //{6}
+					);			
 			} else {
-				tagvalues += String.Format(",{0}:{1}|{2}|{3}", dateTimeStr, valueStr, svalueStr, statusStr);
+				tagvalues += String.Format("{0}{1}{2}{3}{4}{5}{6}{7}", 
+					valueSeparator,							//{0}
+					dateTimeStr,                            //{1}
+					timeSeparator,                          //{2}
+					valueStr,                               //{3}
+					fieldSeparator,                         //{4}
+					svalueStr,                              //{5}
+					fieldSeparator,                         //{6}
+					statusStr                               //{7}
+					);
 			}
 		}
 	}

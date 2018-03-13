@@ -10,17 +10,23 @@ using System.Threading.Tasks;
 namespace PIDataReaderLib {
 	public class PISDKReader : PIReaderInterface {
 		string dateFormat;
-
 		string dateFormatPI;
+		private string timeSeparator;
+		private string fieldSeparator;
+		private string valueSeparator;
+
 		PISDK.PISDK piSDK;
 		PISDK.Server piServer;
 		uint lastReadRecordCount;
 
-		public PISDKReader(string piServerName, string outDateFormat, string dateFormatPI) {
+		public PISDKReader(string piServerName, string outDateFormat, string dateFormatPI, string timeSeparator, string fieldSeparator, string valueSeparator) {
 			this.dateFormat = outDateFormat;
 			this.dateFormatPI = dateFormatPI;
 			this.piSDK = new PISDK.PISDK();
 			this.piServer = this.piSDK.Servers[piServerName];
+			this.timeSeparator = timeSeparator;
+			this.fieldSeparator = fieldSeparator;
+			this.valueSeparator = valueSeparator;
 		}
 
 		public uint GetLastReadRecordCount() {
@@ -46,6 +52,10 @@ namespace PIDataReaderLib {
 			piData.readIntervalStart = startTime.ToString(dateFormat);
 			piData.readIntervalEnd = endTime.ToString(dateFormat);
 			piData.readFinished = endTime.ToString(dateFormat);
+			piData.timeSeparator = timeSeparator;
+			piData.fieldSeparator = fieldSeparator;
+			piData.valueSeparator = valueSeparator;
+
 			return piData;
 		}
 
@@ -81,7 +91,8 @@ namespace PIDataReaderLib {
 				lastReadRecordCount++;
 			}
 			if (sb.Length > 0) {
-				sb.Remove(sb.Length - 1, 1);
+				int vsl = valueSeparator.Length;
+				sb.Remove(sb.Length - vsl, vsl);
 			}
 			tag.tagvalues = sb.ToString();
 			return tag;
@@ -97,7 +108,16 @@ namespace PIDataReaderLib {
 				tagSValue = tagValue;
 				tagValue = "";
 			}
-			sb.AppendFormat("{0}:{1}|{2}|{3},", piValue.TimeStamp.LocalDate.ToString(dateFormat), tagValue, tagSValue, vStatus);
+			sb.AppendFormat("{0}{1}{2}{3}{4}{5}{6}{7}", 
+				piValue.TimeStamp.LocalDate.ToString(dateFormat),		//{0}
+				timeSeparator,                                          //{1}
+				tagValue,                                               //{2}
+				fieldSeparator,                                         //{3}
+				tagSValue,                                              //{4}
+				fieldSeparator,                                         //{5}
+				vStatus,                                                //{6}
+				valueSeparator                                          //{7}
+				);								
 		}
 
 		private void serializeLValue(StringBuilder sb, PIValue piValue, Type valType, bool isPhaseTag) {
@@ -108,7 +128,7 @@ namespace PIDataReaderLib {
 			if (isPhaseTag) {
 				tagValue = piValue.Value.Name.ToString();
 			}
-			sb.AppendFormat("{0}:{1},", piValue.TimeStamp.LocalDate.ToString(dateFormat), tagValue);
+			sb.AppendFormat("{0}{1}{2}{3}", piValue.TimeStamp.LocalDate.ToString(dateFormat), timeSeparator, tagValue, valueSeparator);
 		}
 
 		public PIModule getModuleFromPath(string modulePath) {
