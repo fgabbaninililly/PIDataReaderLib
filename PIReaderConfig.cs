@@ -95,6 +95,9 @@ namespace PIDataReaderLib {
 		[XmlElement("dateformats")]
 		public DateFormats dateFormats { get; set; }
 
+		[XmlElement("separators")]
+		public Separators separators { get; set; }
+
 		[XmlElement("maildata")]
 		public MailData mailData { get; set; }
 
@@ -282,6 +285,17 @@ namespace PIDataReaderLib {
 
 		[XmlAttribute("hadoop")]
 		public string hadoop;
+	}
+
+	public class Separators {
+		[XmlAttribute("timestamp")]
+		public string timestampSeparator;
+
+		[XmlAttribute("field")]
+		public string fieldSeparator;
+
+		[XmlAttribute("value")]
+		public string valueSeparator;
 	}
 
 	public class MailData {

@@ -12,7 +12,7 @@ namespace PIDataReaderLib {
 	 * */
 
 	public class Version {
-		public static readonly string version = "3.3.0";
+		public static readonly string version = "3.4.0";
 		public static string getVersion() {
 			return String.Format("PIDataReader Foundation Library v{0}", version);
 		}

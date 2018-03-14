@@ -59,15 +59,21 @@ namespace PIDataReaderLib {
 		private string dateFormat;
 		private string dateFormatPI;
 		private string piServerName;
+		private string timeSeparator;
+		private string fieldSeparator;
+		private string valueSeparator;
 
 		private uint lastReadRecordCount;
 
 		private OleDbConnection cnn;
 		
-		public PIOLEDBReader(string piServerName, string outDateFormat, string dateFormatPI) {
+		public PIOLEDBReader(string piServerName, string outDateFormat, string dateFormatPI, string timeSeparator, string fieldSeparator, string valueSeparator) {
 			this.dateFormat = outDateFormat;
 			this.dateFormatPI = dateFormatPI;
 			this.piServerName = piServerName;
+			this.timeSeparator = timeSeparator;
+			this.fieldSeparator = fieldSeparator;
+			this.valueSeparator = valueSeparator;
 		}
 
 		public uint GetLastReadRecordCount() {
@@ -96,6 +102,10 @@ namespace PIDataReaderLib {
 			piData.readIntervalStart = startTime.ToString(dateFormat);
 			piData.readIntervalEnd = endTime.ToString(dateFormat);
 			piData.readFinished = endTime.ToString(dateFormat);
+			piData.timeSeparator = timeSeparator;
+			piData.fieldSeparator = fieldSeparator;
+			piData.valueSeparator = valueSeparator;
+
 			return piData;
 		}
 
@@ -411,7 +421,7 @@ namespace PIDataReaderLib {
 				}
 			}
 			
-			tag.addTimedTriple(dt.ToString(dateFormat), tagValue, tagSvalue, tagStatus);
+			tag.addTimedTriple(dt.ToString(dateFormat), tagValue, tagSvalue, tagStatus, timeSeparator, fieldSeparator, valueSeparator);
 
 		}
 
