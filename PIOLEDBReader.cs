@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
@@ -33,6 +34,7 @@ namespace PIDataReaderLib {
 
 		//SUB BATCHES
 		internal static string QRY_SUBBATCHES_TEMPLATE = @"SELECT * FROM [pibatch].[pisubbatch] WHERE (endtime is null OR endtime BETWEEN '{0}' AND '*') AND (starttime BETWEEN '01/01/1970 00:00:00' AND '{1}') AND unitbatchuid IN({2})";
+		internal static string QRY_SUBBATCHES_BY_UNITBATCH_TEMPLATE = @"SELECT * FROM [pibatch].[pisubbatch] WHERE unitbatchuid IN({0})";
 		internal static string PISUBBATCH_FLD_UID = @"uid";
 		internal static string PISUBBATCH_FLD_UNITBATCHUID = @"unitbatchuid";
 		internal static string PISUBBATCH_FLD_PATH = @"path";
@@ -55,6 +57,8 @@ namespace PIDataReaderLib {
 	}
 
 	public class PIOLEDBReader : PIReaderInterface {
+
+		private static Logger logger = LogManager.GetCurrentClassLogger();
 
 		private string dateFormat;
 		private string dateFormatPI;
@@ -123,8 +127,11 @@ namespace PIDataReaderLib {
 			}
 
 			Dictionary<string, UnitBatch> unitBatchDict = getUnitBatches(uid, startTime, endTime);
+			dumpUnitBatches(unitBatchDict);
 			Dictionary<string, Batch> batchDict = getBatches(unitBatchDict);
-			Dictionary<string, SubBatch> subBatchDict = getSubBatches(unitBatchDict, startTime, endTime);
+			dumpBatches(batchDict);
+			Dictionary<string, SubBatch> subBatchDict = getSubBatches(unitBatchDict);
+			dumpSubBatches(subBatchDict);
 
 			PIData piData = makePIDataStructure(unitBatchDict, batchDict, subBatchDict);
 			piData.readIntervalStart = startTime.ToString(dateFormat);
@@ -178,6 +185,36 @@ namespace PIDataReaderLib {
 			return piData;
 		}
 
+		private void dumpBatches(Dictionary<string, Batch> batchDict) {
+			if (!logger.IsTraceEnabled) {
+				return;
+			}
+			logger.Trace(">>Batches:");
+			foreach (Batch b in batchDict.Values) {
+				logger.Trace(b.describe());
+			}
+		}
+
+		private void dumpUnitBatches(Dictionary<string, UnitBatch> unitBatchDict) {
+			if (!logger.IsTraceEnabled) {
+				return;
+			}
+			logger.Trace(">>Unit batches:");
+			foreach (UnitBatch ub in unitBatchDict.Values) {
+				logger.Trace(ub.describe());					
+			}
+		}
+
+		private void dumpSubBatches(Dictionary<string, SubBatch> subBatchDict) {
+			if (!logger.IsTraceEnabled) {
+				return;
+			}
+			logger.Trace(">>Sub batches:");
+			foreach (SubBatch sb in subBatchDict.Values) {
+				logger.Trace(sb.describe());
+			}
+		}
+
 		#region Utility methods to read batch information from PI database
 
 		private Dictionary<string, Batch> getBatches(Dictionary<string, UnitBatch> unitBatchDict) {
@@ -229,6 +266,38 @@ namespace PIDataReaderLib {
 				unitBatchDict.Add(uBatch.uid, uBatch);
 			}
 			return unitBatchDict;
+		}
+
+		private Dictionary<string, SubBatch> getSubBatches(Dictionary<string, UnitBatch> unitBatchDict) {
+			Dictionary<string, SubBatch> subBatchDict = new Dictionary<string, SubBatch>();
+
+			SortedSet<string> uBatchUids = new SortedSet<string>();
+			foreach (UnitBatch uBatch in unitBatchDict.Values) {
+				if (null != uBatch.uid && 0 != uBatch.uid.Length) {
+					uBatchUids.Add(uBatch.uid);
+				}
+			}
+			StringBuilder uBatchUidQuotedCsv = new StringBuilder();
+			foreach (string uBatchUid in uBatchUids) {
+				uBatchUidQuotedCsv.AppendFormat("'{0}',", uBatchUid);
+			}
+			if (0 == uBatchUidQuotedCsv.Length) {
+				return subBatchDict;
+			}
+			uBatchUidQuotedCsv.Remove(uBatchUidQuotedCsv.Length - 1, 1);
+
+			string qry = string.Format(PIOLEDBSQL.QRY_SUBBATCHES_BY_UNITBATCH_TEMPLATE, uBatchUidQuotedCsv);
+			connect();
+
+			OleDbDataAdapter dataAdapter = new OleDbDataAdapter(qry, cnn);
+			DataTable dataTable = new DataTable();
+			dataAdapter.Fill(dataTable);
+			foreach (DataRow row in dataTable.Rows) {
+				SubBatch subBatch = buildSubBatch(row);
+				subBatchDict.Add(subBatch.uid, subBatch);
+			}
+
+			return subBatchDict;
 		}
 
 		private Dictionary<string, SubBatch> getSubBatches(Dictionary<string, UnitBatch> unitBatchDict, DateTime startTime, DateTime endTime) {
@@ -437,7 +506,31 @@ namespace PIDataReaderLib {
 		#endregion
 
 		#region OleDbConnection
+
+		private void clearCache() {
+			string qry = "CLEAR CACHES";
+			OleDbCommand command = new OleDbCommand(qry, cnn);
+			command.ExecuteNonQuery();
+		}
+
 		private void connect() {
+			if (null != cnn) {
+				cnn.Close();
+				cnn.Dispose();
+			}
+			string connectionString = "Provider = PIOLEDB; " + "Data Source = " + piServerName;
+			try {
+				cnn = new OleDbConnection(connectionString);
+			} catch (Exception) {
+				cnn = null;
+			}
+			if (cnn.State == ConnectionState.Closed) {
+				cnn.Open();
+			}
+			clearCache();
+		}
+		
+		private void getConnection(bool clearcache) {
 			if (null == cnn) {
 				string connectionString = "Provider = PIOLEDB; " + "Data Source = " + piServerName;
 				try {
@@ -452,6 +545,10 @@ namespace PIDataReaderLib {
 			}
 			if (cnn.State == ConnectionState.Closed) {
 				cnn.Open();
+			}
+
+			if (clearcache) { 
+				clearCache();
 			}
 		}
 
