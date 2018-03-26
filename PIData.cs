@@ -143,6 +143,11 @@ namespace PIDataReaderLib {
 		public Batch() {
 			unitBatches = new List<UnitBatch>();
 		}
+
+		public string describe() {
+			return String.Format("uid: {0}, batchid: {1}, start: {2}, end: {3}, product: {4}, recipe: {5}",
+				uid, batchid, starttime, endtime, product, recipe);
+		}
 	}
 
 	public class UnitBatch {
@@ -175,6 +180,11 @@ namespace PIDataReaderLib {
 
 		public UnitBatch() {
 			subBatches = new List<SubBatch>();
+		}
+
+		public string describe() {
+			return String.Format("uid: {0}, batchid: {1}, start: {2}, end: {3}, product: {4}, procedure: {5}, module: {6}, batchuid: {7}",
+				uid, batchid, starttime, endtime, product, procedure, moduleuid, batchuid);
 		}
 	}
 
@@ -214,6 +224,11 @@ namespace PIDataReaderLib {
 
 		public SubBatch() {
 			subBatches = new List<SubBatch>();
+		}
+
+		public string describe() {
+			return String.Format("uid: {0}, unitbatchuid: {1}, start: {2}, end: {3}, name: {4}, headinguid: {5}, level: {6}, childcnt: {7}, parentuid: {8}",
+				uid, unitbatchuid, starttime, endtime, name, headinguid, level, childcount, parentuid);
 		}
 
 		public override string ToString() {
