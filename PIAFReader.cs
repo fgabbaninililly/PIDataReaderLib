@@ -1,4 +1,5 @@
-﻿using OSIsoft.AF;
+﻿using NLog;
+using OSIsoft.AF;
 using OSIsoft.AF.Asset;
 using OSIsoft.AF.Data;
 using OSIsoft.AF.PI;
@@ -11,6 +12,8 @@ using System.Threading.Tasks;
 
 namespace PIDataReaderLib {
 	public class PIAFReader : PIReaderInterface {
+		private static Logger logger = LogManager.GetCurrentClassLogger();
+
 		string dateFormat;
 		string dateFormatPI;
 		private string timeSeparator;
@@ -118,7 +121,8 @@ namespace PIDataReaderLib {
 						tagList.Add(tag);
 					}					
 				} catch (Exception ex) {
-					throw new Exception("Unable to read values for tag " + pt.Name + ". Details: " + ex.Message);
+					logger.Error("Unable to read values for tag " + pt.Name);
+					logger.Error("Details: " + ex.Message);
 				}
 			}
 			return tagList;
