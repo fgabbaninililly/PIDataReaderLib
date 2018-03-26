@@ -1,4 +1,5 @@
-﻿using PISDK;
+﻿using NLog;
+using PISDK;
 using PISDKCommon;
 using PITimeServer;
 using System;
@@ -9,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace PIDataReaderLib {
 	public class PISDKReader : PIReaderInterface {
+		private static Logger logger = LogManager.GetCurrentClassLogger();
+
 		string dateFormat;
 		string dateFormatPI;
 		private string timeSeparator;
@@ -73,7 +76,9 @@ namespace PIDataReaderLib {
 						tagList.Add(tag);
 					}
 				} catch (Exception ex) {
-					throw new Exception("Unable to read values for tag " + tagName + ". Details: " + ex.Message);
+					logger.Error("Unable to read values for tag " + tagName);
+					logger.Error("Details: " + ex.Message);
+					//throw new Exception("Unable to read values for tag " + tagName + ". Details: " + ex.Message);
 				}
 			}
 			return tagList;
