@@ -165,6 +165,10 @@ namespace PIDataReaderLib {
 
 			return sb.ToString();
 		}
+
+		public static string removeInvalidXmlChars(string content) {
+			return new string(content.Where(ch => System.Xml.XmlConvert.IsXmlChar(ch)).ToArray());
+		}
 	}
 	public sealed class TypeUtil {
 		private static volatile TypeUtil instance;

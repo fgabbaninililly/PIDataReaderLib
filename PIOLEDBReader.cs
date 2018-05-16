@@ -475,9 +475,9 @@ namespace PIDataReaderLib {
 			}
 
 			//send all values, separated by '|'
-			string tagSvalue = row[PIOLEDBSQL.PICOMP_FLD_SVALUE].ToString();
-			string tagValue = row[PIOLEDBSQL.PICOMP_FLD_VALUE].ToString();
-			string tagStatus = row[PIOLEDBSQL.PICOMP_FLD_STATUS].ToString();
+			string tagSvalue = Utils.removeInvalidXmlChars(row[PIOLEDBSQL.PICOMP_FLD_SVALUE].ToString());
+			string tagValue = Utils.removeInvalidXmlChars(row[PIOLEDBSQL.PICOMP_FLD_VALUE].ToString());
+			string tagStatus = Utils.removeInvalidXmlChars(row[PIOLEDBSQL.PICOMP_FLD_STATUS].ToString());
 
 			DateTime dt = (DateTime)row[PIOLEDBSQL.PICOMP_FLD_TIME];
 			if (tagSvalue.Length != 0) {
@@ -493,6 +493,8 @@ namespace PIDataReaderLib {
 			tag.addTimedTriple(dt.ToString(dateFormat), tagValue, tagSvalue, tagStatus, timeSeparator, fieldSeparator, valueSeparator);
 
 		}
+
+		
 
 		private Tag findTagByName(List<Tag> tagList, string tagName) {
 			foreach(Tag t in tagList) {
