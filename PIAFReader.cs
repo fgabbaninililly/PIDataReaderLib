@@ -107,7 +107,7 @@ namespace PIDataReaderLib {
 		}
 
 		private List<Tag> ReadTags(SortedSet<string> tagNameList, DateTime startTime, DateTime endTime, AFBoundaryType boundaryType, bool phaseTags) {
-			IList<PIPoint> points = OSIsoft.AF.PI.PIPoint.FindPIPoints(piServer, tagNameList.ToArray());
+			IList<PIPoint> points = OSIsoft.AF.PI.PIPoint.FindPIPoints(piServer, tagNameList.ToArray()); //FG1 unhandled exception is thrown here if no connection to PI available!!!
 			PIPointList pointList = new PIPointList(points);
 			AFTimeRange timeRange = SetupTimeRange(startTime, endTime);
 
