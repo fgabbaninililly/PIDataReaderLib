@@ -55,6 +55,7 @@ namespace PIDataReaderLib {
 		public static readonly int CFGERR_INVALID_READMODE = 120;
 		public static readonly int CFGERR_NULL_AFELEMENTS_OBJECT = 130;
 		public static readonly int CFGERR_NULLORINVALID_MAIL_DATA = 140;
+		public static readonly int CFGERR_INVALID_SEPARATOR_LENGTH = 150;
 
 		public ConfigurationErrors() {
 			this.Add(CFGERR_NONE, "No error detected in configuration.");
@@ -75,6 +76,7 @@ namespace PIDataReaderLib {
 			this.Add(CFGERR_INVALID_READMODE, "Null or invalid read mode. Please check your xml configuration file.");
 			this.Add(CFGERR_NULL_AFELEMENTS_OBJECT, "Null reference to AF element list. Please check your xml configuration file.");
 			this.Add(CFGERR_INCONSISTENT_READMODE, "Inconsistent read mode. Please specify valid equipments or batches according to the read mode.");
+			this.Add(CFGERR_INVALID_SEPARATOR_LENGTH, "Invalid separator length. Separators must be single characters.");
 		}
 	}
 
@@ -191,7 +193,13 @@ namespace PIDataReaderLib {
 			if (ConfigurationErrors.CFGERR_NONE != err) {
 				return err;
 			}
-						
+			
+			if (1 != config.separators.fieldSeparator.Length ||
+				1 != config.separators.timestampSeparator.Length ||
+				1 != config.separators.valueSeparator.Length) {
+				return ConfigurationErrors.CFGERR_INVALID_SEPARATOR_LENGTH;
+			}
+			
 			Connection connection = config.getConnectionByName("pi");
 			if (null == connection) {
 				return ConfigurationErrors.CFGERR_NULL_PICONNECTION_OBJECT;
@@ -288,6 +296,11 @@ namespace PIDataReaderLib {
 	}
 
 	public class Separators {
+		//Example: 2018-03-05T01-31-07.000|14.3021288;;0,2018-03-05T02-40-07.000|0.7508799;;0,2018-03-05T03-45-07.000|3.8253369;;0
+		// | = timestampSeparator
+		// , = valueSeparator
+		// ; = fieldSeparator
+
 		[XmlAttribute("timestamp")]
 		public string timestampSeparator;
 

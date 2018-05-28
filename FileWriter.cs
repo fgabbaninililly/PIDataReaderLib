@@ -9,11 +9,17 @@ namespace PIDataReaderLib {
 		private string outFolder;
 		private string inDateFormat;
 		private string outDateFormat;
+		private char timeValueSeparator;
+		private char recordSeparator;
+		private char fieldSeparator;
 
-		public FileWriter(string outFolder, string inDateFormat, string outDateFormat) {
+		public FileWriter(string outFolder, string inDateFormat, string outDateFormat, char timeValueSeparator, char recordSeparator, char fieldSeparator) {
 			this.outFolder = outFolder;
 			this.inDateFormat = inDateFormat;
 			this.outDateFormat = outDateFormat;
+			this.timeValueSeparator = timeValueSeparator;
+			this.recordSeparator = recordSeparator;
+			this.fieldSeparator = fieldSeparator;
 		}
 		
 		private void createFolder(string pathToFolder) {
@@ -23,7 +29,7 @@ namespace PIDataReaderLib {
 		}
 
 		public void writeTags(PIData piData, string equipmentName, bool append) {
-			TagSerializer tagSerializer = new TagSerializer(inDateFormat, outDateFormat);
+			TagSerializer tagSerializer = new TagSerializer(inDateFormat, outDateFormat, timeValueSeparator, recordSeparator, fieldSeparator);
 			
 			try {
 				string destFolder = String.Format(@"{0}\Out\Tags\", outFolder);
@@ -38,7 +44,7 @@ namespace PIDataReaderLib {
 		}
 		[System.Obsolete]
 		public void writeTags(Dictionary<string, PIData> piDataMap, bool append) {
-			TagSerializer tagSerializer = new TagSerializer(inDateFormat, outDateFormat);
+			TagSerializer tagSerializer = new TagSerializer(inDateFormat, outDateFormat, timeValueSeparator, recordSeparator, fieldSeparator);
 			foreach (string equipmentName in piDataMap.Keys) {
 				PIData piData = piDataMap[equipmentName];
 				writeTags(piData, equipmentName, append);

@@ -13,15 +13,20 @@ namespace PIDataReaderLib {
 
 		public string inDateFormat;
 		public string outDateFormat;
-		public char recordSeparator = ',';
-		public char timeValueSeparator = ':';
+		private char valueSeparator = ',';
+		private char timeValueSeparator = ':';
+		private char fieldSeparator = '|';
+
 		public char csvSeparator = ',';
 
 		private static Logger logger = LogManager.GetCurrentClassLogger();
 
-		public TagSerializer(string inDateFormat, string outDateFormat) {
+		public TagSerializer(string inDateFormat, string outDateFormat, char timeValueSeparator, char valueSeparator, char fieldSeparator) {
 			this.inDateFormat = inDateFormat;
 			this.outDateFormat = outDateFormat;
+			this.timeValueSeparator = timeValueSeparator;
+			this.valueSeparator = valueSeparator;
+			this.fieldSeparator = fieldSeparator;
 		}
 
 		public void createFileWithHeader(string outFileFullPath, bool append) {
@@ -79,10 +84,11 @@ namespace PIDataReaderLib {
 		private void serializeTagToLocalFile(Tag tag, StreamWriter outFile) {
 			//sample tag values: 2017-02-13T11-47-16:236.375,2017-02-13T11-48-12:No Data
 			//sample csv line should be: ITP_MTC_AE-066-491-01.P10.PV, 2016-08-22 11:49:03, -9.2926378, null, 0
+
 			if (null == tag.tagvalues || 0 == tag.tagvalues.Length) {
 				return;
 			}
-			List<string> tagListItems = new List<string>(tag.tagvalues.Split(recordSeparator));
+			List<string> tagListItems = new List<string>(tag.tagvalues.Split(valueSeparator));
 			StringBuilder lineBuilder = null;
 			try { 
 				foreach (string tagInfo in tagListItems) {
@@ -97,9 +103,10 @@ namespace PIDataReaderLib {
 					string valueStr = null;
 					string svalueStr = null;
 					string statusString = null;
-					
-					if (tagInfoArray[1].Contains('|')) {
-						string[] valueStrArray = tagInfoArray[1].Split('|');
+
+					//if (tagInfoArray[1].Contains('|')) {
+					if (tagInfoArray[1].Contains(fieldSeparator)) {
+						string[] valueStrArray = tagInfoArray[1].Split(fieldSeparator);
 						valueStr = valueStrArray[0];
 						svalueStr = valueStrArray[1];
 						statusString = valueStrArray[2];
