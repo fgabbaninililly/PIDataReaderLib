@@ -13,6 +13,7 @@ namespace PIDataReaderLib {
 	public class ReadInterval {
 		public DateTime start { get; set; }
 		public DateTime end { get; set; }
+		public bool lastReadWithSuccess;
 
 		private const string format = "yyyy-MM-ddTHH-mm-ss.fff";
 
