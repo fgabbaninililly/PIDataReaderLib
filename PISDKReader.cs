@@ -75,7 +75,7 @@ namespace PIDataReaderLib {
 						Tag tag = setupTagFromLValues(lValues, valType, piPoint.Name, phaseTags);
 						tagList.Add(tag);
 					}
-				} catch (Exception ex) {
+				} catch (System.UnauthorizedAccessException ex) {
 					logger.Error("Unable to read values for tag " + tagName);
 					logger.Error("Details: " + ex.Message);
 					//throw new Exception("Unable to read values for tag " + tagName + ". Details: " + ex.Message);
