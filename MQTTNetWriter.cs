@@ -147,6 +147,7 @@ namespace PIDataReaderLib {
 			MqttApplicationMessage applicationMessage = new MqttApplicationMessage(topic, payload, MqttQualityOfServiceLevel.ExactlyOnce, false);
 			try {
 				await mqttClient.PublishAsync(applicationMessage);
+				
 				logger.Info("Published {0} bytes of data to MQTT broker. Topic: {1}.", payload.Length, topic);
 				publishedMessagesPerWrite++;
 				publishedConfirmedMessageCount++;
@@ -158,7 +159,7 @@ namespace PIDataReaderLib {
 					logger.Info("{0} message(s) left in queue. Topic: {1}", messageQueue.Count, topic);
 				}
 			} catch (Exception e) {
-				logger.Error(String.Format("Failed publishing message {0}. Message queued to be sent later.", message));
+				logger.Error(String.Format("Failed publishing message '{0}'. Message queued to be sent later.", message.Substring(0, 150) + "[...]"));
 				logger.Error("Details: {0}", e.Message);
 			}
 		}

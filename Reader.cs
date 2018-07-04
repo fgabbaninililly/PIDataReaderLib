@@ -96,8 +96,12 @@ namespace PIDataReaderLib {
 		
 		public void dummyRead() {
 			DateTime s = DateTime.Now;
-			piReader.Read("sinusoid", "", s, s.AddSeconds(-1));
-			logger.Info("Executed dummy read to improve performance of next read");
+			try { 
+				piReader.Read("sinusoid", "", s, s.AddSeconds(-1));
+				logger.Info("Executed dummy read to improve performance of next read");
+			} catch(Exception e) {
+				logger.Error("Generic error in dummy read. Details: {0}", e.ToString());
+			}
 		}
 
 		public PIData readTags(EquipmentCfg equipmentCfg, ReadInterval readInterval) {
@@ -112,8 +116,14 @@ namespace PIDataReaderLib {
 					PIReadTerminatedEventArgs ea = new PIReadTerminatedEventArgs(piReader.GetLastReadRecordCount(), swatch.Elapsed.TotalSeconds);
 					Reader_PIReadTerminated(ea);
 				}
+			} catch (System.Data.OleDb.OleDbException e) {
+				logger.Error("Error connecting to PI. Details: {0}", e.ToString());
+			} catch(System.TypeInitializationException e) {
+				logger.Error("Error connecting to PI. Details: {0}", e.ToString());
+			} catch (System.Runtime.InteropServices.COMException e) {
+				logger.Error("Error connecting to PI. Details: {0}", e.ToString());
 			} catch (Exception e) {
-				logger.Error("Error reading tags. Details: {0}", e.ToString());
+				logger.Error("Generic error reading tags. Details: {0}", e.ToString());
 			}
 			return piData;
 		}

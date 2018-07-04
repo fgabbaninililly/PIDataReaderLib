@@ -348,6 +348,14 @@ namespace PIDataReaderLib {
 			}
 			return null;
 		}
+
+		public bool isEnabled() {
+			bool enabled = true;
+			try {
+				enabled = Boolean.Parse(getParameterValueByName(Parameter.PARAMNAME_MQTTENABLED));
+			} catch(Exception) { }
+			return enabled;
+		}
 	}
 
 	public class Parameter {
@@ -367,6 +375,8 @@ namespace PIDataReaderLib {
 		public const string PARAMNAME_MQTTOUT_TOPIC = "topic";
 		public const string PARAMNAME_MQTTOUT_CLIENTID = "clientid";
 
+		public const string PARAMNAME_MQTTENABLED = "mqttenabled";
+
 		public const string PARAM_VALUE_MQTTCLIENTTYPE_MQTTNET = "MQTTnet";
 		public const string PARAM_VALUE_MQTTCLIENTTYPE_M2MQTT = "M2Mqtt";
 
@@ -376,6 +386,8 @@ namespace PIDataReaderLib {
 		public const string PARAM_VALUE_BOUNDARY_INSIDE = "inside";
 		public const string PARAM_VALUE_BOUNDARY_OUTSIDE = "outside";
 		public const string PARAM_VALUE_BOUNDARY_INTERPOLATED = "interpolated";
+		public const string PARAM_VALUE_MQTT_WRITE_ENABLED = "true";
+		public const string PARAM_VALUE_MQTT_WRITE_DISABLED = "false";
 
 		[XmlAttribute("name")]
 		public string name;
