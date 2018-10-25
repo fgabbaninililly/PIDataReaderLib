@@ -115,9 +115,9 @@ namespace PIDataReaderLib {
 			foreach (PIPoint pt in pointList) {
 				try {
 					AFValues afVals = pt.RecordedValues(timeRange, boundaryType, "", false);
+					PIPointType ptType = pt.PointType;
 					if (afVals.Count > 0) {
-						Type afValType = afVals[0].Value.GetType();
-						Tag tag = setupTagFromAFVals(afVals, afValType, pt.Name, phaseTags);
+						Tag tag = setupTagFromAFVals(afVals, ptType, pt.Name, phaseTags);
 						tagList.Add(tag);
 					}					
 				} catch (Exception ex) {
@@ -128,14 +128,14 @@ namespace PIDataReaderLib {
 			return tagList;
 		}
 
-		private Tag setupTagFromAFVals(AFValues afVals, Type afValType, string name, bool isPhaseTag) {
+		private Tag setupTagFromAFVals(AFValues afVals, PIPointType ptType, string name, bool isPhaseTag) {
 			Tag tag = new Tag();
 			tag.name = name;
 			tag.setIsPhaseTag(isPhaseTag);
-			tag.valueType = afValType;
+            tag.valueType = TypeUtil.Instance.piAFPointToSystem(ptType);
 			StringBuilder sb = new StringBuilder();
 			foreach (AFValue afVal in afVals) {
-				serializeAFValue(sb, afVal, afValType);
+                serializeAFValue(sb, afVal);
 				lastReadRecordCount = lastReadRecordCount + 1;
 			}
 			if (sb.Length > 0) {
@@ -146,9 +146,9 @@ namespace PIDataReaderLib {
 			return tag;
 		}
 
-		private void serializeAFValueAsTriple(StringBuilder sb, AFValue afVal, Type valType) {
+		private void serializeAFValueAsTriple(StringBuilder sb, AFValue afVal) {
 			AFValueStatus afvStatus = afVal.Status;
-
+			Type valType = afVal.Value.GetType();
 			string tagValue = afVal.Value.ToString();
 			string tagSValue = "";
 			if (TypeUtil.Instance.isDecimal(valType)) {
@@ -171,8 +171,9 @@ namespace PIDataReaderLib {
 				);                                
 		}
 
-		private void serializeAFValue(StringBuilder sb, AFValue afVal, Type valType) {
+		private void serializeAFValue(StringBuilder sb, AFValue afVal) {
 			string tagValue = afVal.Value.ToString();
+			Type valType = afVal.Value.GetType();
 			if (TypeUtil.Instance.isDecimal(valType)) {
 				tagValue = afVal.ValueAsDouble().ToString("F8");
 			} else if (TypeUtil.Instance.isInteger(valType)) {
