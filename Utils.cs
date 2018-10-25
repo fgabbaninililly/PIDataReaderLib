@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using OSIsoft.AF.PI;
+using PISDK;
 using System.Threading.Tasks;
 
 namespace PIDataReaderLib {
@@ -171,12 +173,19 @@ namespace PIDataReaderLib {
 			return new string(content.Where(ch => System.Xml.XmlConvert.IsXmlChar(ch)).ToArray());
 		}
 	}
-	public sealed class TypeUtil {
+
+    public sealed class TypeUtil {
 		private static volatile TypeUtil instance;
 		private static object syncRoot = new Object();
 		private static HashSet<TypeCode> integerCodes;
 		private static HashSet<TypeCode> decimalCodes;
 		private static HashSet<TypeCode> stringCodes;
+        private static HashSet<PIPointType> ppAFIntegerCodes;
+        private static HashSet<PIPointType> ppAFDecimalCodes;
+        private static HashSet<PIPointType> ppAFStringCodes;
+		private static HashSet<PointTypeConstants> ptSDKIntegerCodes;
+		private static HashSet<PointTypeConstants> ptSDKDecimalCodes;
+		private static HashSet<PointTypeConstants> ptSDKStringCodes;
 
 		private TypeUtil() {
 			TypeCode[] num = {
@@ -202,6 +211,46 @@ namespace PIDataReaderLib {
 			integerCodes = new HashSet<TypeCode>(num);
 			decimalCodes = new HashSet<TypeCode>(flt);
 			stringCodes = new HashSet<TypeCode>(str);
+
+			PIPointType[] ppAFNum = {
+				PIPointType.Digital,
+				PIPointType.Int16,
+				PIPointType.Int32
+			};
+
+			PIPointType[] ppAFFlt = {
+				PIPointType.Float16,
+				PIPointType.Float32,
+				PIPointType.Float64
+			};
+
+			PIPointType[] ppAFStr = {
+				PIPointType.String
+			};
+
+			ppAFIntegerCodes = new HashSet<PIPointType>(ppAFNum);
+			ppAFDecimalCodes = new HashSet<PIPointType>(ppAFFlt);
+			ppAFStringCodes = new HashSet<PIPointType>(ppAFStr);
+
+			PointTypeConstants[] ptSDKNum = {
+				PointTypeConstants.pttypDigital,
+				PointTypeConstants.pttypInt16,
+				PointTypeConstants.pttypInt32
+			};
+
+			PointTypeConstants[] ptSDKFlt = {
+				PointTypeConstants.pttypFloat16,
+				PointTypeConstants.pttypFloat32,
+				PointTypeConstants.pttypFloat64
+			};
+
+			PointTypeConstants[] ptSDKStr = {
+				PointTypeConstants.pttypString
+			};
+
+			ptSDKIntegerCodes = new HashSet<PointTypeConstants>(ptSDKNum);
+			ptSDKDecimalCodes = new HashSet<PointTypeConstants>(ptSDKFlt);
+			ptSDKStringCodes = new HashSet<PointTypeConstants>(ptSDKStr);
 		}
 
 		public static TypeUtil Instance {
@@ -226,6 +275,61 @@ namespace PIDataReaderLib {
 
 		public bool isString(Type t) {
 			return stringCodes.Contains(Type.GetTypeCode(t));
+		}
+
+        public bool isInteger(PIPointType t) {
+            return ppAFIntegerCodes.Contains(t);
+        }
+		
+		public bool isDecimal(PIPointType t) {
+			return ppAFDecimalCodes.Contains(t);
+		}
+		public bool isString(PIPointType t) {
+			return ppAFStringCodes.Contains(t);
+		}
+		public bool isInteger(PointTypeConstants t) {
+			return ptSDKIntegerCodes.Contains(t);
+		}
+
+		public bool isDecimal(PointTypeConstants t) {
+			return ptSDKDecimalCodes.Contains(t);
+		}
+		public bool isString(PointTypeConstants t) {
+			return ptSDKStringCodes.Contains(t);
+		}
+
+		public Type piAFPointToSystem(PIPointType t) {
+			Type tp;
+			switch(t) { 
+				case PIPointType.Int16:
+				case PIPointType.Int32:
+					tp = typeof(Int32);
+					break;
+				case PIPointType.Float16:
+				case PIPointType.Float32:
+				case PIPointType.Float64:
+					tp = typeof(double);
+					break;
+				case PIPointType.String:
+					tp = typeof(string);
+					break;
+				default:
+					throw new Exception("Unexpected input PIPointType");
+			}
+			return tp;
+		}
+
+		public Type piSDKPointToSystem(PointTypeConstants t) {
+			if (ptSDKIntegerCodes.Contains(t)) {
+				return typeof(Int32);
+			}
+			if (ptSDKDecimalCodes.Contains(t)) {
+				return typeof(double);
+			}
+			if (ptSDKStringCodes.Contains(t)) {
+				return typeof(string);
+			}
+			throw new Exception("Unexpected input PIPointType");
 		}
 	}
 }

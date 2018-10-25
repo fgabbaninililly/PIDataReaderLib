@@ -69,10 +69,11 @@ namespace PIDataReaderLib {
 			foreach (string tagName in tagNameList) {
 				try {
 					piPoint = piServer.PIPoints[tagName];
+					PointTypeConstants ptType = piPoint.PointType;
 					PIValues lValues = piPoint.Data.RecordedValues(startTime, endTime);
 					if (lValues.Count > 0) {
 						Type valType = lValues[1].Value.GetType();
-						Tag tag = setupTagFromLValues(lValues, valType, piPoint.Name, phaseTags);
+						Tag tag = setupTagFromLValues(lValues, ptType, piPoint.Name, phaseTags);
 						tagList.Add(tag);
 					}
 				} catch (System.UnauthorizedAccessException ex) {
@@ -84,15 +85,15 @@ namespace PIDataReaderLib {
 			return tagList;
 		}
 
-		private Tag setupTagFromLValues(PIValues lVals, Type valType, string name, bool isPhaseTag) {
+		private Tag setupTagFromLValues(PIValues lVals, PointTypeConstants ptType, string name, bool isPhaseTag) {
 			Tag tag = new Tag();
 			tag.name = name;
 			tag.setIsPhaseTag(isPhaseTag);
-			tag.valueType = valType;
+			tag.valueType = TypeUtil.Instance.piSDKPointToSystem(ptType);
 			StringBuilder sb = new StringBuilder();
 			for (int i = 1; i <= lVals.Count; i++) {
 				PIValue piValue = lVals[i];
-				serializeLValue(sb, piValue, valType, isPhaseTag);
+				serializeLValue(sb, piValue, isPhaseTag);
 				lastReadRecordCount++;
 			}
 			if (sb.Length > 0) {
@@ -125,11 +126,21 @@ namespace PIDataReaderLib {
 				);								
 		}
 
-		private void serializeLValue(StringBuilder sb, PIValue piValue, Type valType, bool isPhaseTag) {
+		private void serializeLValue(StringBuilder sb, PIValue piValue, bool isPhaseTag) {
+			string vtype = Microsoft.VisualBasic.Information.TypeName(piValue.Value);
+			Type valType = piValue.Value.GetType();
+			if (piValue.Value is DigitalState) {
+				valType = typeof(Int32);
+			}
+			
 			string tagValue = piValue.Value.ToString();
 			if (TypeUtil.Instance.isDecimal(valType)) {
 				tagValue = ((double)piValue.Value).ToString("F8");
 			}
+			if (TypeUtil.Instance.isInteger(valType) && piValue.Value is DigitalState) {
+				tagValue = piValue.Value.Name;
+			}
+			
 			if (isPhaseTag) {
 				tagValue = piValue.Value.Name.ToString();
 			}
