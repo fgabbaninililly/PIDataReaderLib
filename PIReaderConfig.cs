@@ -194,12 +194,6 @@ namespace PIDataReaderLib {
 				return err;
 			}
 			
-			if (1 != config.separators.fieldSeparator.Length ||
-				1 != config.separators.timestampSeparator.Length ||
-				1 != config.separators.valueSeparator.Length) {
-				return ConfigurationErrors.CFGERR_INVALID_SEPARATOR_LENGTH;
-			}
-			
 			Connection connection = config.getConnectionByName("pi");
 			if (null == connection) {
 				return ConfigurationErrors.CFGERR_NULL_PICONNECTION_OBJECT;

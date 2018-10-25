@@ -9,11 +9,11 @@ namespace PIDataReaderLib {
 		private string outFolder;
 		private string inDateFormat;
 		private string outDateFormat;
-		private char timeValueSeparator;
-		private char recordSeparator;
-		private char fieldSeparator;
+		private string timeValueSeparator;
+		private string recordSeparator;
+		private string fieldSeparator;
 
-		public FileWriter(string outFolder, string inDateFormat, string outDateFormat, char timeValueSeparator, char recordSeparator, char fieldSeparator) {
+		public FileWriter(string outFolder, string inDateFormat, string outDateFormat, string timeValueSeparator, string recordSeparator, string fieldSeparator) {
 			this.outFolder = outFolder;
 			this.inDateFormat = inDateFormat;
 			this.outDateFormat = outDateFormat;

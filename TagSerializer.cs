@@ -13,15 +13,15 @@ namespace PIDataReaderLib {
 
 		public string inDateFormat;
 		public string outDateFormat;
-		private char valueSeparator = ',';
-		private char timeValueSeparator = ':';
-		private char fieldSeparator = '|';
+		private string valueSeparator = ",";
+		private string timeValueSeparator = ":";
+		private string fieldSeparator = "|";
 
 		public char csvSeparator = ',';
 
 		private static Logger logger = LogManager.GetCurrentClassLogger();
 
-		public TagSerializer(string inDateFormat, string outDateFormat, char timeValueSeparator, char valueSeparator, char fieldSeparator) {
+		public TagSerializer(string inDateFormat, string outDateFormat, string timeValueSeparator, string valueSeparator, string fieldSeparator) {
 			this.inDateFormat = inDateFormat;
 			this.outDateFormat = outDateFormat;
 			this.timeValueSeparator = timeValueSeparator;
@@ -88,11 +88,11 @@ namespace PIDataReaderLib {
 			if (null == tag.tagvalues || 0 == tag.tagvalues.Length) {
 				return;
 			}
-			List<string> tagListItems = new List<string>(tag.tagvalues.Split(valueSeparator));
+			List<string> tagListItems = new List<string>(tag.tagvalues.Split(new string[] { valueSeparator }, StringSplitOptions.None));
 			StringBuilder lineBuilder = null;
 			try { 
 				foreach (string tagInfo in tagListItems) {
-					string[] tagInfoArray = tagInfo.Split(timeValueSeparator);
+					string[] tagInfoArray = tagInfo.Split(new string[] { timeValueSeparator }, StringSplitOptions.None);
 
 					if (tagInfoArray.Length < 2) {
 						logger.Error("Invalid measurement format detected for Tag {0}. Measurement string is {1}.", tag.name, tagInfo);
@@ -106,7 +106,7 @@ namespace PIDataReaderLib {
 
 					//if (tagInfoArray[1].Contains('|')) {
 					if (tagInfoArray[1].Contains(fieldSeparator)) {
-						string[] valueStrArray = tagInfoArray[1].Split(fieldSeparator);
+						string[] valueStrArray = tagInfoArray[1].Split(new string[] { fieldSeparator }, StringSplitOptions.None);
 						valueStr = valueStrArray[0];
 						svalueStr = valueStrArray[1];
 						statusString = valueStrArray[2];
