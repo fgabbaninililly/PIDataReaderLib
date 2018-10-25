@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PIDataReaderLib</RootNamespace>
     <AssemblyName>PIDataReaderLib</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -35,6 +36,7 @@
     <Reference Include="M2Mqtt.Net">
       <HintPath>lib\M2Mqtt.Net.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="MQTTnet, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\PIDataReaderApps\PIDataReaderSolution\packages\MQTTnet.2.4.0\lib\net45\MQTTnet.dll</HintPath>
       <Private>True</Private>
