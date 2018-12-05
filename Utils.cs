@@ -303,6 +303,7 @@ namespace PIDataReaderLib {
 			switch(t) { 
 				case PIPointType.Int16:
 				case PIPointType.Int32:
+				case PIPointType.Digital:
 					tp = typeof(Int32);
 					break;
 				case PIPointType.Float16:
