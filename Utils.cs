@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using OSIsoft.AF.PI;
+using OSIsoft.AF.Asset;
 using PISDK;
 using System.Threading.Tasks;
 
@@ -196,7 +197,8 @@ namespace PIDataReaderLib {
 				TypeCode.SByte,
 				TypeCode.UInt16,
 				TypeCode.UInt32,
-				TypeCode.UInt64 };
+				TypeCode.UInt64
+				};
 
 			TypeCode[] flt = {
 				TypeCode.Decimal,
@@ -277,6 +279,13 @@ namespace PIDataReaderLib {
 			return stringCodes.Contains(Type.GetTypeCode(t));
 		}
 
+		public bool isAFEnumeration(AFValue afVal) {
+			if (afVal.Value is OSIsoft.AF.Asset.AFEnumerationValue) { 
+				return true;
+			}
+			return false;
+		}
+		
         public bool isInteger(PIPointType t) {
             return ppAFIntegerCodes.Contains(t);
         }
