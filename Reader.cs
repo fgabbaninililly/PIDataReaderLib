@@ -109,7 +109,22 @@ namespace PIDataReaderLib {
 			try {
 				logger.Info("Reading '{0}'", equipmentCfg.name);
 				Stopwatch swatch = Stopwatch.StartNew();
-				piData = piReader.Read(equipmentCfg.tagList.tags, equipmentCfg.phaseList.phases, readInterval.start, readInterval.end);
+
+				string tagList = equipmentCfg.tagList.tags;
+				if (tagList != null && tagList.Length > 0) {
+					tagList = tagList.Trim();
+					tagList = System.Text.RegularExpressions.Regex.Replace(tagList, @"\t|\n|\r", "");
+					//tagList = tagList.Replace("\n", String.Empty).Replace("\t", String.Empty).Replace("\r", String.Empty);
+				}
+
+				string phaseList = equipmentCfg.phaseList.phases;
+				if (phaseList != null && phaseList.Length > 0) {
+					phaseList = phaseList.Trim();
+					phaseList = System.Text.RegularExpressions.Regex.Replace(phaseList, @"\t|\n|\r", "");
+					//phaseList = phaseList.Replace("\n", String.Empty).Replace("\t", String.Empty).Replace("\r", String.Empty);
+				}
+
+				piData = piReader.Read(tagList, phaseList, readInterval.start, readInterval.end);
 				swatch.Stop();
 				logger.Info("Finished reading {0} tags", piData.tags.Count);
 				if (null != Reader_PIReadTerminated) {
