@@ -21,6 +21,7 @@ namespace PIDataReaderLib {
 		PISDK.PISDK piSDK;
 		PISDK.Server piServer;
 		uint lastReadRecordCount;
+		BoundaryTypeConstants boundaryType;
 
 		public PISDKReader(string piServerName, string outDateFormat, string dateFormatPI, string timeSeparator, string fieldSeparator, string valueSeparator) {
 			this.dateFormat = outDateFormat;
@@ -36,6 +37,25 @@ namespace PIDataReaderLib {
 			return lastReadRecordCount;
 		}
 
+		public void ResetLastReadRecordCount() {
+			lastReadRecordCount = 0;
+		}
+		
+		public void setBoundaryType(string boundaryType) {
+			if (Parameter.PARAM_VALUE_BOUNDARY_INSIDE.Equals(boundaryType.ToLower())) {
+				setBoundaryType(BoundaryTypeConstants.btInside);
+			} else if (Parameter.PARAM_VALUE_BOUNDARY_OUTSIDE.Equals(boundaryType.ToLower())) {
+				setBoundaryType(BoundaryTypeConstants.btOutside);
+			} else if (Parameter.PARAM_VALUE_BOUNDARY_INTERPOLATED.Equals(boundaryType.ToLower())) {
+				setBoundaryType(BoundaryTypeConstants.btInterp);
+			} else {
+				throw new Exception("Invalid boundary condition was specified. Valid alternatives are: inside, outside, interpolated. please check your configuration file.");
+			}
+		}
+		
+		public void setBoundaryType(BoundaryTypeConstants bType) {
+			boundaryType = bType;
+		}
 		public PIData Read(string tagListCsvString, string phaseTagListCsvString, DateTime startTime, DateTime endTime) {
 			lastReadRecordCount = 0;
 			SortedSet<string> tagNameList = new SortedSet<string>();
@@ -70,7 +90,7 @@ namespace PIDataReaderLib {
 				try {
 					piPoint = piServer.PIPoints[tagName];
 					PointTypeConstants ptType = piPoint.PointType;
-					PIValues lValues = piPoint.Data.RecordedValues(startTime, endTime);
+					PIValues lValues = piPoint.Data.RecordedValues(startTime, endTime, boundaryType);
 					if (lValues.Count > 0) {
 						Type valType = lValues[1].Value.GetType();
 						Tag tag = setupTagFromLValues(lValues, ptType, piPoint.Name, phaseTags);

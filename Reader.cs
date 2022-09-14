@@ -26,6 +26,7 @@ namespace PIDataReaderLib {
 		public Reader(
 			string piServerName,
 			string piSdkType,
+			string piBoundary,
 			bool readBatchMode, 
 			string outDateFormat, 
 			string piDateFormat,
@@ -36,6 +37,7 @@ namespace PIDataReaderLib {
 
 			this.piServerName = piServerName;
 			this.piSdkType = piSdkType;
+			this.boundary = piBoundary;
 			this.readBatchMode = readBatchMode;
 			this.outDateFormat = outDateFormat;
 			this.piDateFormat = piDateFormat;
@@ -43,8 +45,6 @@ namespace PIDataReaderLib {
 			this.timeSeparator = timeSeparator;
 			this.fieldSeparator = fieldSeparator;
 			this.valueSeparator = valueSeparator;
-
-			this.boundary = Parameter.PARAM_VALUE_BOUNDARY_INSIDE;
 		}
 		
 		public void setBoundaryCondition(string bCondition) {
@@ -63,6 +63,7 @@ namespace PIDataReaderLib {
 				if (piSdkType.ToLower().Equals(Parameter.PARAM_VALUE_SDK_OLEDB)) {
 					//use PI OLEDB
 					logger.Info("Using OLEDB");
+					logger.Warn("Please remember boundary conditions cannot be overridden when using OLEDB. System will use default boundary conditions.");
 					PIOLEDBReader piOLEDBReader = new PIOLEDBReader(piServerName, outDateFormat, piDateFormat, timeSeparator, fieldSeparator, valueSeparator);
 					piReader = piOLEDBReader;
 				} else if (piSdkType.ToLower().Equals(Parameter.PARAM_VALUE_SDK_AF)) {
@@ -81,8 +82,9 @@ namespace PIDataReaderLib {
 					}
 				} else {
 					//use PI SDK
-					logger.Info("Using PI SDK");
+					logger.Info("Using PI SDK. Boundary condition: {0}", boundary);
 					PISDKReader piSDKReader = new PISDKReader(piServerName, outDateFormat, piDateFormat, timeSeparator, fieldSeparator, valueSeparator);
+					piSDKReader.setBoundaryType(boundary);
 					piReader = piSDKReader;
 				}
 				logger.Info("Reader successfully built. Connecting to PI server named {0}", piServerName);
@@ -131,6 +133,7 @@ namespace PIDataReaderLib {
 					PIReadTerminatedEventArgs ea = new PIReadTerminatedEventArgs(piReader.GetLastReadRecordCount(), swatch.Elapsed.TotalSeconds);
 					Reader_PIReadTerminated(ea);
 				}
+				piReader.ResetLastReadRecordCount();
 			} catch (System.Data.OleDb.OleDbException e) {
 				logger.Error("Error connecting to PI. Details: {0}", e.ToString());
 			} catch(System.TypeInitializationException e) {
