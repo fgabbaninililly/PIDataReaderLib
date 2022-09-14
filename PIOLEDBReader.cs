@@ -84,6 +84,10 @@ namespace PIDataReaderLib {
 			return lastReadRecordCount;
 		}
 
+		public void ResetLastReadRecordCount() {
+			lastReadRecordCount = 0;
+		}
+
 		public PIData Read(string tagListCsvString, string phaseTagListCsvString, DateTime startTime, DateTime endTime) {
 
 			lastReadRecordCount = 0;
